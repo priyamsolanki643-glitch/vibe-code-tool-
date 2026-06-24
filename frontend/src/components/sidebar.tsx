@@ -256,7 +256,13 @@ const { data: { session } } = await supabase.auth.getSession();
               </div>
             )
           ) : (
-            <button className="size-10 mx-auto grid place-items-center rounded-xl text-[#a1a1aa] hover:text-white hover:bg-white/5 cursor-pointer">
+            <button 
+              onClick={() => {
+                setIsOpen(true);
+                setIsSearchActive(true);
+              }}
+              className="size-10 mx-auto grid place-items-center rounded-xl text-[#a1a1aa] hover:text-white hover:bg-white/5 cursor-pointer"
+            >
               <Search className="size-4" />
             </button>
           )}
