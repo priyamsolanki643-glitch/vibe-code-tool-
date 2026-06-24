@@ -66,7 +66,7 @@ export default function ProgressReality() {
 
           </div>
 
-          <div className="border-border p-8 bg-card max-w-2xl">
+          <div className="border border-border p-8 bg-card max-w-2xl">
             <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-4">Forensic Fact</h3>
             <p className="font-sans text-lg leading-relaxed">
               You missed the 14-day revenue milestone. Your execution consistency has increased from 42 to 84 over this period. These are not the same metric and should not be confused. The system is recalibrating the timeline based on your demonstrated consistency.

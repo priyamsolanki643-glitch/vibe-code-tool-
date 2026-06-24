@@ -128,7 +128,7 @@ export function FocusMode({ isOpen, onClose, taskTitle }: FocusModeProps) {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 justify-center text-red-500 mb-8 font-mono text-sm bg-red-500/10 py-2 px-4 rounded-full border-red-500/20"
+              className="flex items-center gap-2 justify-center text-red-500 mb-8 font-mono text-sm bg-red-500/10 py-2 px-4 rounded-full border border-red-500/20"
             >
               <AlertTriangle className="w-4 h-4" />
               Focus break detected ({warnings}/3). Next break cancels session.
@@ -148,7 +148,7 @@ export function FocusMode({ isOpen, onClose, taskTitle }: FocusModeProps) {
                 if (isActive) setWarnings(prev => prev + 1);
                 onClose(true);
               }}
-              className="flex items-center gap-2 px-6 py-4 rounded-full border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-900 transition-colors"
+              className="flex items-center gap-2 px-6 py-4 rounded-full border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-600 hover:bg-zinc-900 transition-colors"
             >
               <X className="w-5 h-5" />
               ABORT

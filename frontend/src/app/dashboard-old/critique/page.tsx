@@ -91,7 +91,7 @@ export default function CritiqueTerminal() {
         {/* SCREEN 8: FAILURE DIAGNOSTICS */}
         {(viewState === "DIAGNOSTICS" || viewState === "DIAGNOSTICS_PROCESSING" || viewState === "DIAGNOSIS_RESULT") && (
           <div className="absolute inset-0 bg-background/95 z-50 flex items-center justify-center p-6">
-            <div className="w-full max-w-2xl border-border bg-card p-12">
+            <div className="w-full max-w-2xl border border-border bg-card p-12">
               <h2 className="font-mono text-lg uppercase tracking-widest mb-12 text-muted-foreground">Failure Analysis</h2>
 
               {viewState === "DIAGNOSTICS" && (

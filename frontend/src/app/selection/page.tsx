@@ -146,10 +146,10 @@ export default function PathSelection() {
       />
 
       {/* PATH ALPHA (Left) */}
-      <div className="w-full lg:w-1/2 p-6 md:p-12 flex flex-col justify-between relative z-10 overflow-y-auto no-scrollbar">
+      <div className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r border-white/5 p-6 md:p-12 flex flex-col justify-between relative z-10 overflow-y-auto no-scrollbar">
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-amber-500 border-amber-500/20 bg-amber-500/5 px-2 py-0.5 rounded">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-amber-500 border border-amber-500/20 bg-amber-500/5 px-2 py-0.5 rounded">
               PATH 01
             </span>
             <span className="font-mono text-[10px] tracking-[0.2em] text-[#71717a]">
@@ -167,7 +167,7 @@ export default function PathSelection() {
           </div>
           
           {/* Probability dial widget */}
-          <div className="flex items-center gap-4 bg-white/[0.01] rounded-2xl p-4 max-w-md">
+          <div className="flex items-center gap-4 border border-white/5 bg-white/[0.01] rounded-2xl p-4 max-w-md">
             <div className="relative size-14 shrink-0 flex items-center justify-center">
               <svg viewBox="0 0 36 36" className="size-full -rotate-90">
                 <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="3" />
@@ -184,7 +184,7 @@ export default function PathSelection() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-1">Requires</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 {displayAlpha.requiredSacrifices?.map((s: string, idx: number) => (
@@ -193,7 +193,7 @@ export default function PathSelection() {
               </ul>
             </div>
             
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-1">Upsides</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 <li className="flex items-start gap-1"><span className="text-amber-500 select-none">•</span> Asymmetric leverage</li>
@@ -201,7 +201,7 @@ export default function PathSelection() {
               </ul>
             </div>
 
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-red-500/70 uppercase tracking-wider mb-1">Risk Factors</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 {displayAlpha.keyRisks?.slice(0, 2).map((r: string, idx: number) => (
@@ -214,7 +214,7 @@ export default function PathSelection() {
 
         <button 
           onClick={() => handleSelectPath("Alpha")}
-          className="mt-8 w-full max-w-md py-3.5 rounded-full border-amber-500/20 bg-amber-500/5 text-amber-400 font-semibold text-[13px] hover:bg-amber-500/10 hover:border-amber-500/40 transition-all duration-200 cursor-pointer text-center"
+          className="mt-8 w-full max-w-md py-3.5 rounded-full border border-amber-500/20 bg-amber-500/5 text-amber-400 font-semibold text-[13px] hover:bg-amber-500/10 hover:border-amber-500/40 transition-all duration-200 cursor-pointer text-center"
         >
           Select Alpha Trajectory
         </button>
@@ -224,7 +224,7 @@ export default function PathSelection() {
       <div className="w-full lg:w-1/2 p-6 md:p-12 flex flex-col justify-between relative z-10 overflow-y-auto no-scrollbar">
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] tracking-[0.2em] text-cyan-400 border-cyan-400/20 bg-cyan-400/5 px-2 py-0.5 rounded">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-cyan-400 border border-cyan-400/20 bg-cyan-400/5 px-2 py-0.5 rounded">
               PATH 02
             </span>
             <span className="font-mono text-[10px] tracking-[0.2em] text-[#71717a]">
@@ -242,7 +242,7 @@ export default function PathSelection() {
           </div>
           
           {/* Probability dial widget */}
-          <div className="flex items-center gap-4 bg-white/[0.01] rounded-2xl p-4 max-w-md">
+          <div className="flex items-center gap-4 border border-white/5 bg-white/[0.01] rounded-2xl p-4 max-w-md">
             <div className="relative size-14 shrink-0 flex items-center justify-center">
               <svg viewBox="0 0 36 36" className="size-full -rotate-90">
                 <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="3" />
@@ -259,7 +259,7 @@ export default function PathSelection() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-1">Requires</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 {displayBeta.requiredSacrifices?.map((s: string, idx: number) => (
@@ -268,7 +268,7 @@ export default function PathSelection() {
               </ul>
             </div>
             
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider mb-1">Upsides</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 <li className="flex items-start gap-1"><span className="text-cyan-400 select-none">•</span> Compounding stability</li>
@@ -276,7 +276,7 @@ export default function PathSelection() {
               </ul>
             </div>
 
-            <div className="bg-white/[0.01] p-3 rounded-xl">
+            <div className="border border-white/5 bg-white/[0.01] p-3 rounded-xl">
               <h3 className="font-mono text-[10px] text-red-500/70 uppercase tracking-wider mb-1">Risk Factors</h3>
               <ul className="space-y-1 text-[11px] text-[#a1a1aa] leading-snug list-none">
                 {displayBeta.keyRisks?.slice(0, 2).map((r: string, idx: number) => (
@@ -289,7 +289,7 @@ export default function PathSelection() {
 
         <button 
           onClick={() => handleSelectPath("Beta")}
-          className="mt-8 w-full max-w-md py-3.5 rounded-full border-cyan-400/20 bg-cyan-400/5 text-cyan-400 font-semibold text-[13px] hover:bg-cyan-400/10 hover:border-cyan-400/40 transition-all duration-200 cursor-pointer text-center"
+          className="mt-8 w-full max-w-md py-3.5 rounded-full border border-cyan-400/20 bg-cyan-400/5 text-cyan-400 font-semibold text-[13px] hover:bg-cyan-400/10 hover:border-cyan-400/40 transition-all duration-200 cursor-pointer text-center"
         >
           Select Beta Trajectory
         </button>
@@ -298,9 +298,9 @@ export default function PathSelection() {
       {/* COMMITMENT CHECK OVERLAY MODAL */}
       {showCommitmentCheck && selectedPath === "Alpha" && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-3xl flex items-center justify-center p-4">
-          <div className="relative max-w-xl w-full bg-[#09090b] rounded-3xl p-6 md:p-8 shadow-[0_25px_80px_-10px_rgba(0,0,0,0.85)] max-h-[90vh] overflow-y-auto">
+          <div className="relative max-w-xl w-full border border-white/10 bg-[#09090b] rounded-3xl p-6 md:p-8 shadow-[0_25px_80px_-10px_rgba(0,0,0,0.85)] max-h-[90vh] overflow-y-auto">
             
-            <div className="size-10 rounded-xl bg-white/[0.02] flex items-center justify-center mb-4">
+            <div className="size-10 rounded-xl border border-white/10 bg-white/[0.02] flex items-center justify-center mb-4">
               <ShieldAlert className="size-5 text-amber-500 animate-pulse" />
             </div>
             
@@ -321,13 +321,13 @@ export default function PathSelection() {
                 className={`border rounded-2xl p-4 cursor-pointer transition-all ${
                   acceptedOption === "A" 
                     ? "border-amber-500/50 bg-amber-500/[0.03]" 
-                    : " bg-transparent hover:"
+                    : "border-white/5 bg-transparent hover:border-white/10"
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-white text-xs font-semibold uppercase font-mono">[Option A] The Extreme Path</span>
                   <div className={`size-4 rounded-full border flex items-center justify-center ${
-                    acceptedOption === "A" ? "border-amber-500 bg-amber-500" : ""
+                    acceptedOption === "A" ? "border-amber-500 bg-amber-500" : "border-white/20"
                   }`}>
                     {acceptedOption === "A" && <div className="size-2 rounded-full bg-black" />}
                   </div>
@@ -347,13 +347,13 @@ export default function PathSelection() {
                 className={`border rounded-2xl p-4 cursor-pointer transition-all ${
                   acceptedOption === "B" 
                     ? "border-cyan-500/50 bg-cyan-500/[0.03]" 
-                    : " bg-transparent hover:"
+                    : "border-white/5 bg-transparent hover:border-white/10"
                 }`}
               >
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-white text-xs font-semibold uppercase font-mono">[Option B] The Compounding Path</span>
                   <div className={`size-4 rounded-full border flex items-center justify-center ${
-                    acceptedOption === "B" ? "border-cyan-500 bg-cyan-500" : ""
+                    acceptedOption === "B" ? "border-cyan-500 bg-cyan-500" : "border-white/20"
                   }`}>
                     {acceptedOption === "B" && <div className="size-2 rounded-full bg-black" />}
                   </div>
@@ -369,7 +369,7 @@ export default function PathSelection() {
             {acceptedOption === "A" && (
               <div 
                 onClick={() => setIsConfirmed(!isConfirmed)}
-                className="flex items-start gap-3 mb-6 bg-white/[0.01] rounded-2xl p-3.5 cursor-pointer select-none hover: transition-colors"
+                className="flex items-start gap-3 mb-6 bg-white/[0.01] border border-white/5 rounded-2xl p-3.5 cursor-pointer select-none hover:border-white/10 transition-colors"
               >
                 <div 
                   className={`size-5 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
@@ -407,7 +407,7 @@ export default function PathSelection() {
                   setIsConfirmed(false);
                 }}
                 disabled={isLocking}
-                className="px-5 py-3 rounded-full font-semibold text-[13px] bg-transparent text-[#a1a1aa] hover:text-white hover:bg-white/[0.02] transition-colors cursor-pointer text-center"
+                className="px-5 py-3 rounded-full font-semibold text-[13px] border border-white/10 bg-transparent text-[#a1a1aa] hover:text-white hover:bg-white/[0.02] transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>
@@ -420,9 +420,9 @@ export default function PathSelection() {
       {/* REGULAR DIRECT LOCK CONFIRMATION MODAL (For Beta or non-extreme goals) */}
       {!showCommitmentCheck && selectedPath && (
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-2xl flex items-center justify-center p-4">
-          <div className="relative max-w-xl w-full bg-[#09090b] rounded-3xl p-6 md:p-8 shadow-[0_25px_80px_-10px_rgba(0,0,0,0.85)]">
+          <div className="relative max-w-xl w-full border border-white/10 bg-[#09090b] rounded-3xl p-6 md:p-8 shadow-[0_25px_80px_-10px_rgba(0,0,0,0.85)]">
             
-            <div className="size-10 rounded-xl bg-white/[0.02] flex items-center justify-center mb-4">
+            <div className="size-10 rounded-xl border border-white/10 bg-white/[0.02] flex items-center justify-center mb-4">
               <Check className="size-5 text-cyan-400" />
             </div>
             
@@ -437,7 +437,7 @@ export default function PathSelection() {
             {/* Checkbox Toggle */}
             <div 
               onClick={() => setIsConfirmed(!isConfirmed)}
-              className="flex items-start gap-3 mb-6 bg-white/[0.02] rounded-2xl p-3.5 cursor-pointer select-none hover: transition-colors"
+              className="flex items-start gap-3 mb-6 bg-white/[0.02] border border-white/5 rounded-2xl p-3.5 cursor-pointer select-none hover:border-white/10 transition-colors"
             >
               <div 
                 className={`size-5 rounded border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
@@ -473,7 +473,7 @@ export default function PathSelection() {
                   setIsConfirmed(false);
                 }}
                 disabled={isLocking}
-                className="px-5 py-3.5 rounded-full font-semibold text-[13px] bg-transparent text-[#a1a1aa] hover:text-white hover:bg-white/[0.02] transition-colors cursor-pointer text-center"
+                className="px-5 py-3.5 rounded-full font-semibold text-[13px] border border-white/10 bg-transparent text-[#a1a1aa] hover:text-white hover:bg-white/[0.02] transition-colors cursor-pointer text-center"
               >
                 Cancel
               </button>

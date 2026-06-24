@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Vault, Square, Atom } from "lucide-react";
-import { GyroLogo } from "./gyro-logo";
+import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const markdownPlugins = [remarkGfm];
+
 interface ChatViewProps {
   onOpenSidebar: () => void;
   onOpenVault: () => void;
@@ -32,18 +35,13 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
   const [isThinking, setIsThinking] = useState(false);
   const [isLoadingThread, setIsLoadingThread] = useState(false);
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
   const [greeting, setGreeting] = useState({ text: "Hi bro", accent: "execution kiya ?", animateAccent: true });
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [loadingPhraseIndex, setLoadingPhraseIndex] = useState(0);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Initialize anonymous id
   useEffect(() => {
@@ -115,7 +113,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
       setIsThinking(false);
       setIsLoadingThread(false);
       setThreadId(null);
-      setEditingMessageId(null);
     };
 
     const handleLoadThread = async (e: Event) => {
@@ -241,11 +238,9 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
     }
   };
 
-  const handleSend = useCallback(async (options?: string | { isRetry?: boolean }) => {
-    const isRetry = typeof options === 'object' ? options.isRetry : false;
-    const textVal = typeof options === 'string' ? options : input;
-    const text = textVal.trim();
-    if (!text && selectedFiles.length === 0 && !isRetry) return;
+  const handleSend = useCallback(async (textOverride?: string) => {
+    const text = (textOverride ?? input).trim();
+    if (!text && selectedFiles.length === 0) return;
 
     if (isAnonymous) {
       const currentCount = parseInt(localStorage.getItem("fp_anon_count") || "0");
@@ -258,80 +253,49 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
 
     if (isThinking) return;
 
-    let currentMessages = [...messages];
-
-    // If editing, truncate everything from the edited message onwards
-    if (editingMessageId && !isRetry) {
-      const idx = currentMessages.findIndex(m => m.id === editingMessageId);
-      if (idx !== -1) {
-        currentMessages = currentMessages.slice(0, idx);
-      }
-      setEditingMessageId(null);
-    }
-
-    // If retry, truncate the last AI message
-    if (isRetry) {
-      let lastUserIdx = -1;
-      for (let i = currentMessages.length - 1; i >= 0; i--) {
-        if (currentMessages[i].role === "user") {
-          lastUserIdx = i;
-          break;
-        }
-      }
-      if (lastUserIdx !== -1) {
-        currentMessages = currentMessages.slice(0, lastUserIdx + 1);
-      } else {
-        return;
-      }
-    }
-
     const filesPayload = selectedFiles.map((file, idx) => ({
       name: file.name,
       url: filePreviews[idx],
       type: file.type,
     }));
 
-    if (!isRetry) {
-      currentMessages.push({
+    setMessages((prev) => [
+      ...prev,
+      {
         id: String(Date.now()),
         role: "user",
         text,
         files: filesPayload,
-      });
-    }
-
-    setMessages(currentMessages);
+      },
+    ]);
+    
     setInput("");
     setSelectedFiles([]);
     setFilePreviews([]);
     setIsThinking(true);
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
     try {
-      const historyPayload = currentMessages.slice(0, -1).map((m) => ({
+      const historyPayload = messages.map((m) => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.text }]
       }));
-      const payloadMessage = currentMessages[currentMessages.length - 1]?.text || "";
+      historyPayload.push({
+        role: "user",
+        parts: [{ text }]
+      });
 
 const { data: { session } } = await supabase.auth.getSession();
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
 
       const res = await fetch(`${baseUrl}/api/v1/interaction/message/stream`, {
         method: "POST",
-        signal: controller.signal,
         headers: { 
           "Content-Type": "application/json",
           "Authorization": session?.access_token ? `Bearer ${session.access_token}` : "",
           ...(isAnonymous ? { "X-Anonymous-Id": localStorage.getItem("fp_anon_id") || "anon" } : {})
         },
         body: JSON.stringify({
-          message: payloadMessage,
+          message: text,
           conversationHistory: historyPayload,
           thread_id: threadId
         }),
@@ -373,7 +337,6 @@ const { data: { session } } = await supabase.auth.getSession();
         // Push an empty message first
         setMessages((prev) => [...prev, { id: newMsgId, role: "fp", text: "" }]);
         setIsThinking(false);
-        setIsStreaming(true);
 
         while (!done) {
           const { value, done: doneReading } = await reader.read();
@@ -382,12 +345,11 @@ const { data: { session } } = await supabase.auth.getSession();
             const chunk = decoder.decode(value, { stream: true });
             streamBuffer += chunk;
             const lines = streamBuffer.split("\n");
-            // The last element is always the remainder after the last newline (can be empty string)
             streamBuffer = lines.pop() || "";
             
             for (const line of lines) {
-              if (line.startsWith("data:")) {
-                const dataStr = line.replace(/^data:\s*/, "");
+              if (line.startsWith("data: ")) {
+                const dataStr = line.replace("data: ", "");
                 if (dataStr === "[DONE]") {
                   done = true;
                   break;
@@ -421,23 +383,17 @@ const { data: { session } } = await supabase.auth.getSession();
           }
         }
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('Generation stopped by user');
-        setIsThinking(false);
-        return;
-      }
-      console.error("CRITICAL FETCH ERROR:", error);
+    } catch (err: any) {
+      console.error("CRITICAL FETCH ERROR:", err);
       setMessages((prev) => [
         ...prev,
         { id: String(Date.now()), role: "fp", text: "Connection error. Strategy engine offline." },
       ]);
     } finally {
       setIsThinking(false);
-      setIsStreaming(false);
       inputRef.current?.focus();
     }
-  }, [input, isThinking, messages, selectedFiles, filePreviews, editingMessageId, isAnonymous, onRequireAuth, threadId]);
+  }, [input, isThinking, messages, selectedFiles, filePreviews]);
 
   const proceedToSimulation = () => {
     if (!simulationData) return;
@@ -446,15 +402,29 @@ const { data: { session } } = await supabase.auth.getSession();
     router.push("/gate");
   };
 
-  const copyToClipboard = (id: string, txt: string) => {
+  const copyToClipboard = (txt: string) => {
     navigator.clipboard.writeText(txt);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleRetry = useCallback(() => {
     if (messages.length === 0) return;
-    handleSend({ isRetry: true });
+    // Find the last user message
+    let lastUserMessage = null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        lastUserMessage = messages[i];
+        break;
+      }
+    }
+    if (!lastUserMessage) return;
+    
+    // Remove all messages after the last user message
+    const lastUserIndex = messages.indexOf(lastUserMessage);
+    const newMessages = messages.slice(0, lastUserIndex + 1);
+    setMessages(newMessages);
+    
+    // Trigger send with the same text
+    handleSend(lastUserMessage.text);
   }, [messages, handleSend]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -481,24 +451,8 @@ const { data: { session } } = await supabase.auth.getSession();
   return (
     <div className="flex-1 flex flex-col min-w-0 relative h-screen bg-[#000000] text-white font-sans overflow-hidden">
       
-      <svg width="0" height="0" className="absolute pointer-events-none">
-        <filter id="liquid-spill">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -6" result="liquid" />
-          <feComposite in="SourceGraphic" in2="liquid" operator="atop" />
-        </filter>
-      </svg>
-
       {/* CSS Animation definitions for smooth message reveals */}
       <style>{`
-        .liquid-streaming-text {
-          filter: url(#liquid-spill);
-          animation: pulseBleed 0.6s infinite alternate;
-        }
-        @keyframes pulseBleed {
-          0% { text-shadow: 0 0 2px rgba(255,255,255,0.4); opacity: 0.85; }
-          100% { text-shadow: 0 0 12px rgba(255,255,255,0.7); opacity: 1; }
-        }
         /* Smooth message entrance transition */
         .animate-message-reveal {
           opacity: 0;
@@ -553,7 +507,7 @@ const { data: { session } } = await supabase.auth.getSession();
         .input-console-transition:focus-within {
           border-color: rgba(255, 255, 255, 0.25) !important;
           transform: translateY(-2px);
-          background-color: #18181b !important;
+          background-color: rgba(15, 15, 15, 0.9) !important;
         }
 
         /* Action triggers hover dynamics */
@@ -585,26 +539,17 @@ const { data: { session } } = await supabase.auth.getSession();
           border-radius: 8px;
           animation: skeletonPulse 1.5s ease-in-out infinite;
         }
-
-        /* Audio visualizer wave */
-        @keyframes audioWave {
-          0%, 100% { height: 4px; opacity: 0.6; }
-          50% { height: 12px; opacity: 1; }
-        }
-        .animate-audio-wave-1 { animation: audioWave 0.9s ease-in-out infinite; }
-        .animate-audio-wave-2 { animation: audioWave 0.9s ease-in-out infinite 0.15s; }
-        .animate-audio-wave-3 { animation: audioWave 0.9s ease-in-out infinite 0.3s; }
-        .animate-audio-wave-4 { animation: audioWave 0.9s ease-in-out infinite 0.45s; }
       `}</style>
 
       {/* ── Top Bar Header (Trajectory Forge style) ── */}
       <header 
-        className="reveal-chat-item absolute top-0 inset-x-0 h-14 flex items-center justify-between px-6 bg-transparent z-30 pointer-events-none"
+        className="reveal-chat-item h-14 shrink-0 flex items-center justify-between px-6 bg-transparent backdrop-blur-xl border-b border-white/5 z-20 sticky top-0"
         style={{ animationDelay: "0ms" }}
       >
-        <div className="flex items-center gap-3 pointer-events-auto">
+        <div className="flex items-center gap-3">
           {/* Menu trigger */}
           <button
+            id="sidebar-toggle"
             onClick={onOpenSidebar}
             className="size-9 grid place-items-center bg-transparent text-white hover:text-gray-300 cursor-pointer transition-colors"
           >
@@ -613,7 +558,7 @@ const { data: { session } } = await supabase.auth.getSession();
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-1 md:gap-2 -mr-1">
+        <div className="flex items-center gap-2 -mr-1">
           <button 
             onClick={() => window.dispatchEvent(new Event('new-thread'))}
             className="p-2 text-[#ffffff] hover:text-[#f4f4f5] active:scale-90 transition-all cursor-pointer drop-shadow-[0_0_12px_rgba(255, 255, 255,0.6)]"
@@ -624,8 +569,8 @@ const { data: { session } } = await supabase.auth.getSession();
       </header>
 
       {/* ── Message stream area ── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative z-10 pt-16">
-        <div className="max-w-[720px] mx-auto px-4 md:px-8 h-full flex flex-col justify-between">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative z-10">
+        <div className="max-w-[760px] mx-auto px-4 md:px-8 h-full flex flex-col justify-between">
           
           {isLoadingThread ? (
             /* Skeleton Loading State for old thread */
@@ -690,48 +635,21 @@ const { data: { session } } = await supabase.auth.getSession();
                     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                       
                       {isUser ? (
-                        editingMessageId === m.id ? (
-                          /* God-level Inline Edit UI */
-                          <div className="relative flex flex-col items-end w-full max-w-[85%] animate-message-reveal">
-                            <textarea
-                              value={editText}
-                              onChange={(e) => setEditText(e.target.value)}
-                              autoFocus
-                              rows={Math.max(1, editText.split('\n').length)}
-                              className="w-full bg-[#0c0c0e]/80 backdrop-blur-3xl border border-white/20 text-white px-5 py-3 rounded-[24px] resize-none outline-none focus:border-white/50 focus:shadow-[0_0_25px_rgba(255,255,255,0.15)] transition-all overflow-hidden text-[15px] leading-[1.5] min-h-[48px]"
-                            />
-                            <div className="flex justify-end gap-2 mt-3">
-                              <button 
-                                onClick={() => setEditingMessageId(null)} 
-                                className="px-4 py-2 rounded-2xl bg-white/5 hover:bg-white/10 text-[#a1a1aa] hover:text-white transition-colors text-sm font-medium"
-                              >
-                                Cancel
-                              </button>
-                              <button 
-                                onClick={() => handleSend(editText)} 
-                                disabled={!editText.trim()}
-                                className="px-5 py-2 rounded-2xl bg-white text-black hover:scale-[1.03] active:scale-95 transition-transform text-sm font-semibold shadow-[0_0_20px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:hover:scale-100"
-                              >
-                                Save & Submit
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          /* User message: Dark bubble with optional files */
-                          <div 
-                            className="relative flex flex-col items-end group max-w-[80%] cursor-pointer md:cursor-auto"
-                            onClick={(e) => handleMessageClick(e, m.id)}
-                          >
-                            <div className="bg-white/[0.04] /[0.06] backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-white text-[15px] font-medium leading-[1.6] px-5 py-3.5 rounded-[24px] select-text space-y-2.5 break-words max-w-full overflow-hidden">
+                        /* User message: Dark bubble with optional files */
+                        <div 
+                          className="relative flex flex-col items-end group max-w-[80%] cursor-pointer md:cursor-auto"
+                          onClick={(e) => handleMessageClick(e, m.id)}
+                        >
+                          <div className="bg-white/[0.04] border border-white/[0.06] backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] text-white text-[15px] font-medium leading-[1.6] px-5 py-3.5 rounded-[24px] select-text space-y-2.5 break-words max-w-full overflow-hidden">
                             {m.text && <div>{m.text}</div>}
                             {m.files && m.files.length > 0 && (
-                              <div className="flex flex-wrap gap-2 pt-1">
+                              <div className="flex flex-wrap gap-2 pt-1 border-t border-white/5">
                                 {m.files.map((file, fIdx) => (
                                   <a
                                     key={fIdx}
                                     href={file.url}
                                     download={file.name}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition text-xs text-[#a1a1aa] hover:text-white max-w-full"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition text-xs text-[#a1a1aa] hover:text-white max-w-full"
                                   >
                                     {file.type.startsWith("image/") ? (
                                       <img src={file.url} alt="attached file" className="max-h-[140px] rounded-lg object-cover" />
@@ -747,54 +665,60 @@ const { data: { session } } = await supabase.auth.getSession();
                             )}
                           </div>
                           {/* Actions row for user */}
-                          <div className={`flex items-center gap-3 transition-all duration-300 text-[#a1a1aa] origin-top-right ${
+                          <div className={`flex items-center gap-3 transition-all duration-300 text-[#a1a1aa] ${
                             activeMessageId === m.id 
-                              ? "mt-2 bg-black text-white px-4 py-2.5 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-white/30 opacity-100 scale-100" 
-                              : "hidden opacity-0 scale-95"
+                              ? "absolute top-full mt-2 right-0 bg-[#1a1a1a] text-white px-4 py-2.5 rounded-2xl shadow-xl opacity-100 scale-100 z-50 border border-white/10" 
+                              : "opacity-0 md:group-hover:opacity-100 mt-1.5 scale-95 md:scale-100"
                           }`}>
                             <button 
-                              onClick={(e) => { e.stopPropagation(); setEditingMessageId(m.id); setEditText(m.text); setActiveMessageId(null); }} 
+                              onClick={(e) => { e.stopPropagation(); setInput(m.text); inputRef.current?.focus(); setActiveMessageId(null); }} 
                               className="p-1 hover:text-white transition-colors" 
                             >
                               <Edit className="size-4" />
                             </button>
                             <button 
-                              onClick={(e) => { e.stopPropagation(); copyToClipboard(m.id, m.text); }} 
+                              onClick={(e) => { e.stopPropagation(); copyToClipboard(m.text); setActiveMessageId(null); }} 
                               className="p-1 hover:text-white transition-colors" 
                             >
-                              {copiedId === m.id ? <Check className="size-4 text-green-400" /> : <Copy className="size-4" />}
+                              <Copy className="size-4" />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleRetry(); setActiveMessageId(null); }} 
+                              className="p-1 hover:text-white transition-colors" 
+                            >
+                              <RefreshCw className="size-4" />
                             </button>
                           </div>
                         </div>
-                      )) : (
+                      ) : (
                         /* Lumensky message: Bubbleless raw text */
                         <div 
                           className="relative flex-1 space-y-4 select-text min-w-0 max-w-full group cursor-pointer md:cursor-auto"
                           onClick={(e) => handleMessageClick(e, m.id)}
                         >
-                          <div className="font-sans prose prose-invert prose-p:leading-[1.9] prose-p:text-[15.5px] prose-p:mb-5 prose-p:text-white/85 prose-p:font-[300] prose-p:tracking-[0.02em] prose-li:my-1 prose-ul:my-3 prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-wide text-[16px] max-w-3xl break-words">
-                            <ReactMarkdown>
+                          <div className="font-serif prose prose-invert prose-p:leading-[1.8] prose-p:mb-5 prose-li:my-1 prose-ul:my-3 prose-headings:font-sans text-[16px] text-[#f2efe8]/90 max-w-none break-words tracking-wide">
+                            <ReactMarkdown remarkPlugins={markdownPlugins}>
                               {m.text}
                             </ReactMarkdown>
                           </div>
 
                           {/* Actions row */}
-                          <div className={`flex items-center gap-4 transition-all duration-300 text-[#a1a1aa] origin-top-left ${
+                          <div className={`flex items-center gap-4 transition-all duration-300 text-[#a1a1aa] ${
                             activeMessageId === m.id 
-                              ? "mt-2 bg-black text-white px-4 py-2.5 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-white/30 opacity-100 scale-100 w-max" 
-                              : "hidden opacity-0 scale-95"
+                              ? "absolute top-full mt-2 left-0 bg-[#1a1a1a] text-white px-4 py-2.5 rounded-2xl shadow-xl opacity-100 scale-100 z-50 border border-white/10" 
+                              : "opacity-0 md:group-hover:opacity-100 pt-2 scale-95 md:scale-100"
                           }`}>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); copyToClipboard(m.text); setActiveMessageId(null); }}
+                              className="p-1 hover:text-white cursor-pointer transition-colors"
+                            >
+                              <Copy className="size-4" />
+                            </button>
                             <button 
                               onClick={(e) => { e.stopPropagation(); handleRetry(); setActiveMessageId(null); }}
                               className="p-1 hover:text-white cursor-pointer transition-colors"
                             >
                               <RefreshCw className="size-4" />
-                            </button>
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); copyToClipboard(m.id, m.text); }}
-                              className="p-1 hover:text-white cursor-pointer transition-colors"
-                            >
-                              {copiedId === m.id ? <Check className="size-4 text-green-400" /> : <Copy className="size-4" />}
                             </button>
                             <button className="p-1 hover:text-white cursor-pointer transition-colors">
                               <ThumbsUp className="size-4" />
@@ -882,7 +806,12 @@ const { data: { session } } = await supabase.auth.getSession();
                         animation: shimmerText 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
                       }
                     `}</style>
-                    <GyroLogo size={22} />
+                    <div className="gyro-container">
+                      <div className="gyro-ring ring-1"></div>
+                      <div className="gyro-ring ring-2"></div>
+                      <div className="gyro-ring ring-3"></div>
+                      <div className="gyro-core"></div>
+                    </div>
                     {/* Rotating status text */}
                     <span 
                       key={loadingPhraseIndex} 
@@ -903,12 +832,12 @@ const { data: { session } } = await supabase.auth.getSession();
       {/* ── Input Box (Trajectory Forge copy) ── */}
       <div className="shrink-0 px-4 md:px-8 pb-6 pt-2 bg-[#000000] relative z-10">
         <div 
-          className="reveal-chat-item max-w-[720px] w-full mx-auto"
+          className="reveal-chat-item max-w-[640px] w-full mx-auto"
           style={{ animationDelay: "550ms" }}
         >
           
           {/* Sleek Apple-inspired floating capsule without glow */}
-          <div className={`input-console-transition flex items-center gap-1.5 md:gap-3 bg-black rounded-[32px] px-3 py-2 md:py-2.5 min-h-[64px] border transition-colors duration-300 ${isThinking ? "border-transparent" : "border-white/40"}`}>
+          <div className="input-console-transition flex items-center gap-1.5 md:gap-3 border border-white/[0.08] bg-black rounded-[32px] px-3 py-2 md:py-2.5 min-h-[64px]">
             
             {/* Left Action - Attach */}
             <div className="relative shrink-0 flex items-center justify-center">
@@ -925,7 +854,7 @@ const { data: { session } } = await supabase.auth.getSession();
 
               {/* Attachment Menu Popover */}
               {isAttachMenuOpen && (
-                <div className="absolute bottom-full left-0 mb-4 bg-[#1a1b1e] rounded-[24px] p-2 flex flex-col shadow-2xl min-w-[160px] animate-scale-in origin-bottom-left z-50 overflow-hidden">
+                <div className="absolute bottom-full left-0 mb-4 bg-[#1a1b1e] border border-white/5 rounded-[24px] p-2 flex flex-col shadow-2xl min-w-[160px] animate-scale-in origin-bottom-left z-50 overflow-hidden">
                   <div className="flex flex-col gap-1 animate-fade-in">
                     <button 
                       onClick={() => { cameraInputRef.current?.click(); setIsAttachMenuOpen(false); }}
@@ -959,7 +888,7 @@ const { data: { session } } = await supabase.auth.getSession();
               {selectedFiles.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1 pb-1">
                   {selectedFiles.map((file, idx) => (
-                    <div key={idx} className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 text-[12px] text-[#a1a1aa] pr-8 animate-message-reveal">
+                    <div key={idx} className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/5 text-[12px] text-[#a1a1aa] pr-8 animate-message-reveal">
                       {file.type.startsWith("image/") ? (
                         <img src={filePreviews[idx]} alt="preview" className="size-5 object-cover rounded" />
                       ) : (
@@ -979,14 +908,9 @@ const { data: { session } } = await supabase.auth.getSession();
               )}
 
               {isRecording && (
-                <div className="flex items-center gap-3 px-2 py-1 text-[13px] text-red-400 font-medium tracking-wide">
-                  <div className="flex items-center gap-[3px] h-3">
-                    <span className="w-[3px] bg-red-500 rounded-full animate-audio-wave-1 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                    <span className="w-[3px] bg-red-500 rounded-full animate-audio-wave-2 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                    <span className="w-[3px] bg-red-500 rounded-full animate-audio-wave-3 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                    <span className="w-[3px] bg-red-500 rounded-full animate-audio-wave-4 shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                  </div>
-                  <span className="animate-pulse">Listening...</span>
+                <div className="flex items-center gap-2.5 px-1 py-1 text-xs text-red-400 font-mono animate-pulse">
+                  <span className="size-2 rounded-full bg-red-500" />
+                  Listening...
                 </div>
               )}
 
@@ -1025,43 +949,20 @@ const { data: { session } } = await supabase.auth.getSession();
               <button 
                 type="button"
                 onClick={toggleRecording}
-                className={`size-10 rounded-full grid place-items-center cursor-pointer transition-all duration-300 active:scale-90 active:bg-white/10 relative ${
-                  isRecording ? "bg-red-500/20 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]" : "hover:bg-white/10 text-[#a1a1aa] hover:text-white"
+                className={`size-10 rounded-full grid place-items-center cursor-pointer transition-all duration-200 active:scale-90 active:bg-white/10 ${
+                  isRecording ? "bg-red-500/20 text-red-400" : "hover:bg-white/5 text-[#a1a1aa] hover:text-white"
                 }`}
                 title={isRecording ? "Stop voice input" : "Voice input"}
               >
-                {isRecording && (
-                  <span className="absolute inset-0 rounded-full border border-red-500/50 animate-ping opacity-75" />
-                )}
-                <Mic className="size-[20px] relative z-10" />
+                <Mic className="size-[20px]" />
               </button>
 
               <button
-                onClick={() => {
-                  if (isThinking) {
-                    abortControllerRef.current?.abort();
-                  } else {
-                    handleSend();
-                  }
-                }}
-                className={`action-icon-btn size-10 rounded-full grid place-items-center transition-all duration-500 cursor-pointer relative z-10 ${
-                  isThinking 
-                    ? "bg-red-500/10 text-red-400 hover:bg-red-500/20 active:scale-90 shadow-[0_0_20px_rgba(239,68,68,0.15)] border border-red-500/20"
-                    : (!input.trim() && selectedFiles.length === 0)
-                      ? "bg-white/5 text-white/30 border border-white/5"
-                      : "bg-white text-black hover:scale-[1.05] active:scale-95 shadow-[0_0_25px_rgba(255,255,255,0.3)]"
-                }`}
+                onClick={() => handleSend()}
+                disabled={!input.trim() && selectedFiles.length === 0}
+                className="action-icon-btn size-10 rounded-full grid place-items-center bg-white text-black hover:scale-[1.05] active:scale-90 disabled:bg-white/10 disabled:text-white/30 transition-all cursor-pointer shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
-                {/* Active glow ring */}
-                {!isThinking && (input.trim() || selectedFiles.length > 0) && (
-                  <span className="absolute inset-0 rounded-full border border-white/50 animate-pulse pointer-events-none" />
-                )}
-                
-                {isThinking ? (
-                  <Square className="size-[14px] fill-red-400 text-red-400" />
-                ) : (
-                  <ArrowUp className="size-[20px] stroke-[2.5]" />
-                )}
+                <ArrowUp className="size-[20px] stroke-[2.5]" />
               </button>
             </div>
           </div>
@@ -1069,7 +970,7 @@ const { data: { session } } = await supabase.auth.getSession();
           {/* Subtext info */}
           <div className="mt-3 text-center">
             <span className="font-sans text-[11px] text-[#52525b]">
-              Lumensky helps you execute faster, but always double-check the details.
+              Lumensky is an AI, it can make mistakes.
             </span>
           </div>
 

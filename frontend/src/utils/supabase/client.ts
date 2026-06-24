@@ -1,7 +1,7 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 // Automatically clean up the Vercel injected URL if it contains /rest/v1/
-let rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dummy.supabase.co';
+let rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kscqvigvcfjdulonvdxa.supabase.co';
 if (rawUrl.includes('/rest/v1')) {
   rawUrl = rawUrl.replace('/rest/v1/', '').replace('/rest/v1', '');
 }
@@ -10,6 +10,6 @@ if (rawUrl.endsWith('/')) {
 }
 
 const supabaseUrl = rawUrl;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)

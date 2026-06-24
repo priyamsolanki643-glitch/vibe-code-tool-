@@ -26,10 +26,15 @@ export default function EntryPoint() {
       try {
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-        const res = await fetch(`${baseUrl}/api/v1/interaction/active-mission`, {
-          headers: { "Authorization": `Bearer ${session?.access_token}` }
+        const anonId = localStorage.getItem("fp_anon_id");
+        if (!session && !anonId) return;
+        
+        const headers: any = {};
+        if (session) headers["Authorization"] = `Bearer ${session.access_token}`;
+        if (anonId) headers["X-Anonymous-Id"] = anonId;
 
+        const res = await fetch(`${baseUrl}/api/v1/interaction/active-mission`, {
+          headers
         });
         const result = await res.json();
         if (result?.data) {
@@ -49,9 +54,6 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setHasSession(true);
-        setIsLocked(true);
-      } else if (typeof window !== 'undefined' && localStorage.getItem("fp_anon_id")) {
-        setIsAnonymous(true);
         setIsLocked(true);
       }
       
@@ -192,7 +194,7 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       />
       
       <ChatView
-        onOpenSidebar={() => setIsSidebarOpen(prev => !prev)}
+        onOpenSidebar={() => setIsSidebarOpen(true)}
         onOpenVault={() => setIsVaultOpen(true)}
         onOpenFocusMode={() => setIsFocusModeOpen(true)}
         isAnonymous={isAnonymous}

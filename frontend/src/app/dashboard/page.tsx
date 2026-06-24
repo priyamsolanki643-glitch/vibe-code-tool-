@@ -83,7 +83,7 @@ export default function CMOTerminal() {
     <div className="min-h-screen bg-black text-zinc-300 font-sans selection:bg-green-500/30 overflow-x-hidden">
       
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-black/50 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded bg-green-500 flex items-center justify-center">
@@ -111,7 +111,7 @@ export default function CMOTerminal() {
           {/* SECTION 1: RETENTION IMPACT */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-zinc-950 rounded-2xl p-6 relative overflow-hidden"
+            className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative overflow-hidden"
           >
 
             <SectionHeader title="Retention Impact" icon={TrendingUp} subtitle="Projected Day-30 Batch Retention vs Industry Avg" />
@@ -147,7 +147,7 @@ export default function CMOTerminal() {
           {/* SECTION 2: DROPOUT RISK RADAR */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="bg-zinc-950 rounded-2xl p-6 relative"
+            className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative"
           >
 
             <SectionHeader title="Dropout Risk Radar" icon={ShieldAlert} subtitle="Real-time behavioral risk classification" />
@@ -167,13 +167,13 @@ export default function CMOTerminal() {
               </div>
               
               <div className="flex-1 space-y-4">
-                <div className="p-3 bg-red-500/10 border-red-500/20 rounded-lg">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <div className="text-red-500 font-bold text-sm mb-1">Top Dropout Catalyst (This Week)</div>
                   <div className="text-white text-lg">{topFriction}</div>
                   <div className="text-zinc-400 text-xs mt-1">Affected: {topFrictionCount.toLocaleString()} students</div>
                 </div>
 
-                <div className="p-3 bg-green-500/10 border-green-500/20 rounded-lg flex items-center justify-between">
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center justify-between">
                   <div>
                     <div className="text-green-500 font-bold text-sm">Students Saved</div>
                     <div className="text-zinc-400 text-xs">Intervened via State Lock</div>
@@ -191,7 +191,7 @@ export default function CMOTerminal() {
           {/* SECTION 3: EXECUTION INTELLIGENCE */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-zinc-950 rounded-2xl p-6 relative"
+            className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative"
           >
 
             <SectionHeader title="Execution Intelligence" icon={BarChart} subtitle="Identified friction points causing inconsistency" />
@@ -215,33 +215,33 @@ export default function CMOTerminal() {
           {/* SECTION 4: API BLUEPRINT */}
           <motion.section 
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="bg-zinc-950 rounded-2xl p-6 relative flex flex-col"
+            className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative flex flex-col"
           >
             <SectionHeader title="API Integration Blueprint" icon={Server} subtitle="Enterprise-ready webhook architecture" />
             
             {/* Flow Diagram */}
-            <div className="flex items-center justify-between p-4 bg-black rounded-lg mb-6 text-sm">
+            <div className="flex items-center justify-between p-4 bg-black border border-white/5 rounded-lg mb-6 text-sm">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-blue-500/20 border-blue-500/50 flex flex-col items-center justify-center text-blue-400 text-[10px] font-bold leading-tight">
+                <div className="w-12 h-12 rounded-full bg-blue-500/20 border border-blue-500/50 flex flex-col items-center justify-center text-blue-400 text-[10px] font-bold leading-tight">
                   <span>PW</span>
                   <span>App</span>
                 </div>
               </div>
               <ArrowRight className="text-zinc-600" />
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-green-500/20 border-green-500/50 flex items-center justify-center text-green-400">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center text-green-400">
                   <BrainCircuit size={20} />
                 </div>
               </div>
               <ArrowRight className="text-zinc-600" />
               <div className="flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-purple-500/20 border-purple-500/50 flex items-center justify-center text-purple-400">
+                <div className="w-12 h-12 rounded-full bg-purple-500/20 border border-purple-500/50 flex items-center justify-center text-purple-400">
                   <Target size={20} />
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 bg-black rounded-lg p-4 font-mono text-xs text-zinc-300 overflow-hidden relative group">
+            <div className="flex-1 bg-black rounded-lg border border-white/10 p-4 font-mono text-xs text-zinc-300 overflow-hidden relative group">
               <div className="absolute top-2 right-2 flex gap-2">
                 <span className="px-2 py-0.5 rounded bg-green-500/20 text-green-500 text-[10px]">ENTERPRISE READY</span>
               </div>
@@ -262,7 +262,7 @@ export default function CMOTerminal() {
         {/* ROW 3: ROI CALCULATOR */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="bg-zinc-950 rounded-2xl p-6 relative"
+          className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative"
         >
 
           <SectionHeader title="ROI Calculator" icon={Calculator} subtitle="Projected revenue saved via AI-driven retention" />
@@ -295,7 +295,7 @@ export default function CMOTerminal() {
               </div>
             </div>
 
-            <div className="bg-black rounded-xl p-6 flex flex-col justify-center items-center text-center">
+            <div className="bg-black border border-white/10 rounded-xl p-6 flex flex-col justify-center items-center text-center">
               <div className="text-zinc-400 text-sm mb-2">Projected Revenue Retained / Year</div>
               <div className="text-5xl font-bold text-green-500 mb-4">
                 ₹{(revenueSaved / 10000000).toFixed(2)} Cr
@@ -311,53 +311,53 @@ export default function CMOTerminal() {
         {/* ROW 4: PREDICTIVE LINGUISTIC RADAR */}
         <motion.section 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-          className="bg-zinc-950 rounded-2xl p-6 relative overflow-hidden"
+          className="bg-zinc-950 border border-white/10 rounded-2xl p-6 relative overflow-hidden"
         >
-          <div className="absolute top-2 right-2 px-2 py-1 bg-purple-500/10 border-purple-500/20 rounded text-[10px] text-purple-500 font-mono tracking-wider flex items-center gap-1 z-10 backdrop-blur-md">
+          <div className="absolute top-2 right-2 px-2 py-1 bg-purple-500/10 border border-purple-500/20 rounded text-[10px] text-purple-500 font-mono tracking-wider flex items-center gap-1 z-10 backdrop-blur-md">
             <ScanFace size={10} />
             FP-OS CORE IP
           </div>
           <SectionHeader title="Predictive Linguistic Radar" icon={ScanFace} subtitle="Analyzing 'How' they write to predict dropouts 21 days early" />
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="bg-black rounded-xl p-5 relative overflow-hidden group">
+            <div className="bg-black border border-white/5 rounded-xl p-5 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
               <div className="flex items-center gap-3 mb-3">
                 <MessageSquareWarning className="text-red-500" size={20} />
                 <div className="text-white font-bold text-sm">Sentence Length Drop</div>
               </div>
               <p className="text-zinc-400 text-xs mb-3">"Usually types 3-4 lines. Today typed 1 line."</p>
-              <div className="bg-red-500/10 border-red-500/20 p-2 rounded text-red-500 text-xs font-mono font-bold text-center">
+              <div className="bg-red-500/10 border border-red-500/20 p-2 rounded text-red-500 text-xs font-mono font-bold text-center">
                 DETECTED: STRESS SIGNAL
               </div>
             </div>
 
-            <div className="bg-black rounded-xl p-5 relative overflow-hidden group">
+            <div className="bg-black border border-white/5 rounded-xl p-5 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500"></div>
               <div className="flex items-center gap-3 mb-3">
                 <Timer className="text-yellow-500" size={20} />
                 <div className="text-white font-bold text-sm">Response Delay</div>
               </div>
               <p className="text-zinc-400 text-xs mb-3">"Usually replies in 5 mins. Today replied after 2 hours."</p>
-              <div className="bg-yellow-500/10 border-yellow-500/20 p-2 rounded text-yellow-500 text-xs font-mono font-bold text-center">
+              <div className="bg-yellow-500/10 border border-yellow-500/20 p-2 rounded text-yellow-500 text-xs font-mono font-bold text-center">
                 DETECTED: AVOIDANCE BEHAVIOR
               </div>
             </div>
 
-            <div className="bg-black rounded-xl p-5 relative overflow-hidden group">
+            <div className="bg-black border border-white/5 rounded-xl p-5 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
               <div className="flex items-center gap-3 mb-3">
                 <BrainCircuit className="text-purple-500" size={20} />
                 <div className="text-white font-bold text-sm">Hesitation Vocabulary</div>
               </div>
               <p className="text-zinc-400 text-xs mb-3">"Usage of 'but', 'maybe', 'I'll try' spiked by 40%."</p>
-              <div className="bg-purple-500/10 border-purple-500/20 p-2 rounded text-purple-500 text-xs font-mono font-bold text-center">
+              <div className="bg-purple-500/10 border border-purple-500/20 p-2 rounded text-purple-500 text-xs font-mono font-bold text-center">
                 DETECTED: EXECUTION COLLAPSE
               </div>
             </div>
           </div>
           
-          <div className="mt-6 p-4 bg-zinc-900 rounded-lg flex items-center justify-between">
+          <div className="mt-6 p-4 bg-zinc-900 border border-white/5 rounded-lg flex items-center justify-between">
             <div className="text-sm text-zinc-300">
               <span className="text-white font-bold">Action Taken:</span> Generated Weekly Risk Report & Alerted Saarthi Mentor
             </div>

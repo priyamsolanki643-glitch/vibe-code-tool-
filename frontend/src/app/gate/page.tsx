@@ -82,12 +82,12 @@ export default function SurvivabilityGate() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Giant digital runway counter */}
-            <div className="relative bg-white/[0.01] rounded-3xl p-6 backdrop-blur-xl">
+            <div className="relative border border-white/5 bg-white/[0.01] rounded-3xl p-6 backdrop-blur-xl">
               <div className="flex justify-between items-start mb-4">
                 <span className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider">
                   Liquid Capital Runway
                 </span>
-                <div className="flex items-center gap-1.5 bg-white/[0.02] px-2 py-0.5 rounded font-mono text-[9px] text-[#71717a]">
+                <div className="flex items-center gap-1.5 border border-white/5 bg-white/[0.02] px-2 py-0.5 rounded font-mono text-[9px] text-[#71717a]">
                   <Activity className="size-2.5 text-cyan-400" /> LIVE COMPILER
                 </div>
               </div>
@@ -107,12 +107,12 @@ export default function SurvivabilityGate() {
             </div>
 
             {/* V_c Capability Calibration */}
-            <div className="relative bg-white/[0.01] rounded-3xl p-6 backdrop-blur-xl">
+            <div className="relative border border-white/5 bg-white/[0.01] rounded-3xl p-6 backdrop-blur-xl">
               <div className="flex justify-between items-start mb-4">
                 <span className="font-mono text-[10px] text-[#71717a] uppercase tracking-wider">
                   Calibrated Capability (V_c)
                 </span>
-                <div className="flex items-center gap-1.5 bg-white/[0.02] px-2 py-0.5 rounded font-mono text-[9px] text-[#71717a]">
+                <div className="flex items-center gap-1.5 border border-white/5 bg-white/[0.02] px-2 py-0.5 rounded font-mono text-[9px] text-[#71717a]">
                   <Cpu className="size-2.5 text-indigo-400" /> STABILITY CORE
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function SurvivabilityGate() {
                 ? 'border-red-500/20 bg-red-500/[0.03] text-red-400 shadow-[0_0_24px_rgba(239,68,68,0.02)]' : 
               band === 'YELLOW' 
                 ? 'border-amber-500/20 bg-amber-500/[0.03] text-amber-400 shadow-[0_0_24px_rgba(245,158,11,0.02)]' : 
-              ' bg-white/[0.03] text-white/80 shadow-[0_0_24px_rgba(255,255,255,0.02)]'
+              'border-white/20 bg-white/[0.03] text-white/80 shadow-[0_0_24px_rgba(255,255,255,0.02)]'
             }`}
           >
             {band === 'RED' ? (
@@ -165,7 +165,7 @@ export default function SurvivabilityGate() {
         </div>
 
         {/* Narrative Box */}
-        <div className="bg-[#09090b]/40 rounded-2xl p-6 mb-8 backdrop-blur-sm">
+        <div className="border border-white/5 bg-[#09090b]/40 rounded-2xl p-6 mb-8 backdrop-blur-sm">
           <h4 className="font-mono text-[10px] text-[#71717a] uppercase tracking-widest mb-2 flex items-center gap-1.5">
             <Layers className="size-3 text-[#71717a]" /> Infrastructure Viability Score: {materialScore}/100
           </h4>

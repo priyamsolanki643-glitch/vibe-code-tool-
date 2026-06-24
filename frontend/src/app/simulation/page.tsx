@@ -101,12 +101,12 @@ const { data: { session } } = await supabase.auth.getSession();
       <div className="w-full max-w-3xl relative z-10">
         
         {/* Diagnostic HUD Container */}
-        <div className="bg-[#09090b]/80 backdrop-blur-2xl rounded-2xl p-6 md:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="border border-white/5 bg-[#09090b]/80 backdrop-blur-2xl rounded-2xl p-6 md:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
           
           {/* Header */}
-          <div className="flex items-center justify-between pb-6 mb-6">
+          <div className="flex items-center justify-between pb-6 mb-6 border-b border-white/5">
             <div className="flex items-center gap-3">
-              <div className="size-8 rounded-lg bg-white/[0.02] flex items-center justify-center shrink-0">
+              <div className="size-8 rounded-lg border border-white/10 bg-white/[0.02] flex items-center justify-center shrink-0">
                 <Cpu className="size-4 text-cyan-400 animate-pulse" />
               </div>
               <div>
@@ -119,7 +119,7 @@ const { data: { session } } = await supabase.auth.getSession();
               </div>
             </div>
             
-            <div className="flex items-center gap-2 bg-white/[0.02] px-3 py-1 rounded-md">
+            <div className="flex items-center gap-2 border border-white/5 bg-white/[0.02] px-3 py-1 rounded-md">
               {!isComplete ? (
                 <>
                   <Loader2 className="size-3 text-cyan-400 animate-spin" />
@@ -188,7 +188,7 @@ const { data: { session } } = await supabase.auth.getSession();
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="pt-6 flex items-center gap-3 text-white/80 text-[14px] font-semibold"
+                className="pt-6 border-t border-white/5 flex items-center gap-3 text-white/80 text-[14px] font-semibold"
               >
                 <CheckCircle2 className="size-4.5 text-white/80 shrink-0" />
                 <span>Simulation complete. 2 viable trajectories identified.</span>

@@ -47,7 +47,7 @@ export default function StructuralPivot() {
 
           {!isSubmitted && !isProcessing && (
             <form onSubmit={handleSubmit} className="space-y-12">
-              <p className="font-sans text-lg text-foreground/80 leading-relaxed bg-card p-6 border-border">
+              <p className="font-sans text-lg text-foreground/80 leading-relaxed bg-card p-6 border border-border">
                 Submit this form only if a fundamental structural shift in your reality has occurred. Motivational changes, boredom, or new ideas will be rejected by the revalidation engine.
               </p>
 
@@ -115,7 +115,7 @@ export default function StructuralPivot() {
           )}
 
           {isSubmitted && (
-            <div className="border-border p-8 bg-card">
+            <div className="border border-border p-8 bg-card">
               <h2 className="font-mono text-sm uppercase tracking-widest text-status-positive mb-6">
                 Audit Complete
               </h2>
