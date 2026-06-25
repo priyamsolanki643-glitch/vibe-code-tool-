@@ -606,7 +606,7 @@ const { data: { session } } = await supabase.auth.getSession();
           {/* Menu trigger */}
           <button
             onClick={onOpenSidebar}
-            className="size-9 grid place-items-center bg-transparent text-white hover:text-gray-300 cursor-pointer transition-colors"
+            className="relative z-[9999] size-9 grid place-items-center bg-transparent text-white hover:text-gray-300 cursor-pointer transition-colors"
           >
             <Menu className="size-5" />
           </button>
