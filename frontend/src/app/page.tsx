@@ -194,7 +194,7 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       />
       
       <ChatView
-        onOpenSidebar={() => setIsSidebarOpen(true)}
+        onOpenSidebar={() => setIsSidebarOpen(prev => !prev)}
         onOpenVault={() => setIsVaultOpen(true)}
         onOpenFocusMode={() => setIsFocusModeOpen(true)}
         isAnonymous={isAnonymous}
