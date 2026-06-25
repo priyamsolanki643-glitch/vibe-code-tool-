@@ -124,10 +124,10 @@ export function VaultModal({ onClose }: VaultModalProps) {
         const { supabase } = await import('@/utils/supabase/client');
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
-        const anonId = localStorage.getItem("fp_anon_id");
+        const anonId = localStorage.getItem('fp_anon_id');
         
         if (!token && !anonId) {
-          console.error('Vault: No auth token or anonymous ID available');
+          console.error('Vault: No auth credentials available');
           setLoading(false);
           return;
         }
@@ -135,7 +135,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').replace(/\/$/, '');
         const headers: any = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
-        if (anonId) headers["X-Anonymous-Id"] = anonId;
+        else if (anonId) headers["X-Anonymous-Id"] = anonId;
 
         const [missionRes, mirrorRes, marketRes, rivalRes] = await Promise.all([
           fetch(`${baseUrl}/api/v1/interaction/active-mission`, { headers }),
@@ -166,6 +166,50 @@ export function VaultModal({ onClose }: VaultModalProps) {
     fetchVaultData();
   }, []);
 
+  // Supabase Realtime Subscription for Real-time Vault Updates
+  useEffect(() => {
+    let channel: any;
+    let supabaseClient: any;
+    
+    const setupRealtime = async () => {
+      try {
+        const { supabase } = await import('@/utils/supabase/client');
+        supabaseClient = supabase;
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        let userId = session?.user?.id;
+        if (!userId) {
+          const anonId = localStorage.getItem('fp_anon_id');
+          if (anonId) userId = `anon_${anonId}`;
+        }
+        
+        if (!userId) return;
+        
+        channel = supabase.channel('vault-realtime-updates')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'missions', filter: `user_id=eq.${userId}` },
+            (payload) => {
+              console.log('Realtime Vault Update received:', payload);
+              if (payload.new) {
+                setVaultData((prev: any) => prev ? { ...prev, mission: payload.new as MissionData } : { mission: payload.new as MissionData, mirror: null, market: null, rival: null });
+              }
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.error('Failed to setup realtime subscription:', err);
+      }
+    };
+    setupRealtime();
+    
+    return () => {
+      if (channel && supabaseClient) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
+  }, []);
+
   const switchTab = (id: TabId) => {
     if (id === activeTab) return;
     setTabTransition(true);
@@ -187,7 +231,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
 
       {/* Modal Container */}
       <div
-        className={`relative w-full max-w-[1100px] h-[92vh] sm:h-[88vh] flex flex-col rounded-2xl md:rounded-[24px] overflow-hidden transition-all duration-[500ms] bg-black border border-white/[0.08] ${
+        className={`relative w-full max-w-[1100px] h-[92vh] sm:h-[88vh] flex flex-col rounded-2xl md:rounded-[24px] overflow-hidden transition-all duration-[500ms] bg-black /[0.08] ${
           mounted ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-12 scale-[0.96]"
         }`}
         style={{
@@ -205,10 +249,10 @@ export function VaultModal({ onClose }: VaultModalProps) {
         />
         
         {/* Header Section: Replaced mb-10 with compact layout for mobile */}
-        <div className="relative z-20 px-4 sm:px-6 md:px-10 pt-5 sm:pt-6 md:pt-8 pb-4 border-b border-white/5 flex flex-col bg-transparent">
+        <div className="relative z-20 px-4 sm:px-6 md:px-10 pt-5 sm:pt-6 md:pt-8 pb-4 flex flex-col bg-transparent">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="size-8 sm:size-10 rounded-[12px] border border-white/10 flex items-center justify-center bg-white/5 shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+              <div className="size-8 sm:size-10 rounded-[12px] flex items-center justify-center bg-white/5 shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
                 <Lock className="size-4 sm:size-5 text-white/90" />
               </div>
               <div>
@@ -224,7 +268,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
             <div className="flex items-center gap-3">
               <button 
                 onClick={onClose}
-                className="size-8 flex items-center justify-center rounded-full border border-white/5 bg-white/[0.02] hover:bg-white/10 transition-colors text-white/60 hover:text-white"
+                className="size-8 flex items-center justify-center rounded-full bg-white/[0.02] hover:bg-white/10 transition-colors text-white/60 hover:text-white"
               >
                 <X className="size-4" />
               </button>
@@ -257,7 +301,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
 
         {/* Tab Description Context Header: Tells user what this tab does */}
         {activeTabMeta && (
-          <div className="px-4 sm:px-6 md:px-10 py-3 glass-card border-b border-white/5 border-t-0 border-x-0 rounded-none flex items-start gap-2.5 relative z-15">
+          <div className="px-4 sm:px-6 md:px-10 py-3 glass-card border-t-0 border-x-0 rounded-none flex items-start gap-2.5 relative z-15">
             <HelpCircle className="size-4 text-[#71717a] shrink-0 mt-0.5" />
             <p className="text-[11px] sm:text-xs text-[#a1a1aa] leading-snug">
               <strong className="text-white uppercase font-mono mr-1">{activeTabMeta.label}:</strong> 
@@ -274,7 +318,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
           >
             {loading ? (
               <div className="h-[300px] flex flex-col items-center justify-center gap-3">
-                <div className="size-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <div className="size-5 border-2 -white rounded-full animate-spin" />
                 <span className="text-[10px] font-mono tracking-widest text-[#71717a] uppercase">Decrypting Logs...</span>
               </div>
             ) : (
@@ -347,6 +391,15 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
     }
   ] : [];
 
+  const [activeMission, setActiveMission] = useState<any | null>(null);
+
+  useEffect(() => {
+    // Auto-open strategy if it exists
+    if (missions.length > 0 && !activeMission) {
+      setActiveMission(missions[0]);
+    }
+  }, [missions, activeMission]);
+
   if (activeMission) {
     return (
       <div className="w-full glass-card rounded-2xl flex flex-col overflow-hidden animate-fade-in relative group">
@@ -354,7 +407,7 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
         <div className="absolute inset-0 pointer-events-none opacity-5" style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
 
         {/* Toolbar: Responsive buttons */}
-        <div className="h-12 bg-[#121212] border-b border-white/5 flex items-center justify-between px-4 sm:px-6 shrink-0 relative z-30">
+        <div className="h-12 bg-[#121212] flex items-center justify-between px-4 sm:px-6 shrink-0 relative z-30">
           <button 
             onClick={() => setActiveMission(null)}
             className="flex items-center gap-1 text-[#a1a1aa] hover:text-white transition-colors text-xs font-semibold"
@@ -391,7 +444,7 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                  <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
                     <FileText className="size-4 text-white/80" />
                   </div>
                   <div>
@@ -408,7 +461,7 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
             <div className="h-[1px] w-full bg-gradient-to-r from-white/10 to-transparent" />
 
             {/* Mindset Quote */}
-            <div className="border-l-[2px] border-white/20 pl-4 py-1.5">
+            <div className="border-l-[2px] pl-4 py-1.5">
               <div className="text-[9px] font-mono text-[#71717a] tracking-[0.2em] uppercase mb-1">Mindset Prompt</div>
               <p className="text-[13px] sm:text-[15px] font-medium text-white/90 leading-relaxed italic">
                 &quot;{activeMission.quote}&quot;
@@ -416,7 +469,7 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
             </div>
 
             {/* Core Strategy */}
-            <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 sm:p-5 relative overflow-hidden">
+            <div className="bg-white/[0.02] rounded-xl p-4 sm:p-5 relative overflow-hidden">
               <div className="text-[9px] font-mono text-[#71717a] tracking-[0.2em] uppercase mb-2 flex items-center gap-1.5">
                 <Target className="size-3 text-white/70" /> Core Strategy
               </div>
@@ -430,7 +483,7 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
               <div className="text-[9px] font-mono text-[#71717a] tracking-[0.2em] uppercase mb-3 flex items-center gap-1.5">
                 <Lock className="size-3 text-white/70" /> Daily Directives
               </div>
-              <div className="font-mono text-[11px] sm:text-xs text-[#a1a1aa] leading-relaxed bg-black/60 p-4 rounded-xl border border-white/5 space-y-2">
+              <div className="font-mono text-[11px] sm:text-xs text-[#a1a1aa] leading-relaxed bg-black/60 p-4 rounded-xl space-y-2">
                 {activeMission.protocol.map((line: string, i: number) => {
                   const isHeader = line.includes(':') && !line.startsWith('-');
                   return (
@@ -443,12 +496,12 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
             </div>
 
             {/* Status Footer */}
-            <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div>
                 <span className="text-[9px] font-mono text-[#52525b] uppercase tracking-widest block mb-0.5">Timeline Progress</span>
                 <span className="text-white font-semibold">Day {activeMission.day} of {activeMission.total}</span>
               </div>
-              <div className="px-3 py-1.5 bg-[#ffffff]/10 text-white border border-[#ffffff]/20 rounded-md text-[10px] font-mono uppercase tracking-[0.05em] flex items-center gap-2 w-fit">
+              <div className="px-3 py-1.5 bg-[#ffffff]/10 text-white border-[#ffffff]/20 rounded-md text-[10px] font-mono uppercase tracking-[0.05em] flex items-center gap-2 w-fit">
                 <div className="size-1.5 rounded-full bg-white animate-pulse" />
                 {activeMission.consistency}% Consistency Matrix
               </div>
@@ -473,10 +526,10 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
             <div 
               key={idx} 
               onClick={() => setActiveMission(m)}
-              className="group flex items-center justify-between glass-card rounded-xl p-3 sm:p-4 cursor-pointer hover:bg-white/[0.06] hover:border-white/20 transition-all active:scale-[0.98]"
+              className="group flex items-center justify-between glass-card rounded-xl p-3 sm:p-4 cursor-pointer hover:bg-white/[0.06] hover: transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                <div className="size-10 rounded-full bg-white/5 flex items-center justify-center shrink-0">
                   <Target className="size-5 text-white/70 group-hover:text-white transition-colors" />
                 </div>
                 <div>
@@ -534,7 +587,7 @@ function TabMirror({ mirrorData }: { mirrorData?: MirrorData }) {
           </div>
           
           <div className={`px-2.5 py-1 border rounded text-[9px] font-mono tracking-[0.1em] uppercase flex items-center gap-1.5 w-fit ${
-            isTrendUp ? 'border-white/20 text-white bg-white/[0.02]' : 'border-red-500/20 text-red-500 bg-red-500/5'
+            isTrendUp ? ' text-white bg-white/[0.02]' : 'border-red-500/20 text-red-500 bg-red-500/5'
           }`}>
             {isTrendUp ? "OPERATOR MOMENTUM" : "CONSISTENCY RISK DETECTED"}
           </div>
@@ -546,7 +599,7 @@ function TabMirror({ mirrorData }: { mirrorData?: MirrorData }) {
             {[25, 50, 75, 100].map(percent => (
               <div 
                 key={percent} 
-                className="absolute w-full border-b border-white/[0.03] border-dashed" 
+                className="absolute w-full /[0.03] border-dashed" 
                 style={{ bottom: `${percent}%` }}
               />
             ))}
@@ -583,7 +636,7 @@ function TabMirror({ mirrorData }: { mirrorData?: MirrorData }) {
         </div>
         
         {!isTrendUp && (
-          <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-3.5 mt-2">
+          <div className="bg-red-500/5 border-red-500/10 rounded-xl p-3.5 mt-2">
             <p className="text-xs text-red-400 font-medium leading-relaxed flex items-start gap-1.5">
               <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
               Bhai teri execution direction decay ho rahi hai. Weekend pe apne targets fix kar, warna AI model ke hisaab se tera drop-off pakka hai.
@@ -615,7 +668,7 @@ function TabMirror({ mirrorData }: { mirrorData?: MirrorData }) {
             )}
           </div>
           
-          <div className="border border-red-500/10 bg-red-500/[0.01] rounded-xl p-4 sm:p-5">
+          <div className="border-red-500/10 bg-red-500/[0.01] rounded-xl p-4 sm:p-5">
             <div className="text-[9px] font-mono text-red-500 tracking-[0.2em] uppercase mb-4 flex items-center gap-1.5">
               <span className="size-1 rounded-full bg-red-500" /> Friction Point Matrix
             </div>
@@ -677,7 +730,7 @@ function TabDebt({ missionData }: { missionData?: MissionData }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="border border-red-500/10 bg-red-500/[0.01] rounded-xl p-4 sm:p-5">
+        <div className="border-red-500/10 bg-red-500/[0.01] rounded-xl p-4 sm:p-5">
           <div className="text-[9px] font-mono text-red-500 tracking-[0.2em] uppercase mb-2">Backlog Analysis</div>
           <p className="text-xs text-[#d4d4d8] leading-relaxed">
             {hasDebt ? (
@@ -688,7 +741,7 @@ function TabDebt({ missionData }: { missionData?: MissionData }) {
           </p>
         </div>
 
-        <div className="border border-white/5 bg-white/[0.01] rounded-xl p-4 sm:p-5">
+        <div className="bg-white/[0.01] rounded-xl p-4 sm:p-5">
           <div className="text-[9px] font-mono text-[#a1a1aa] tracking-[0.2em] uppercase mb-2">Streak Multiplier</div>
           <p className="text-xs text-[#d4d4d8] leading-relaxed">
             Tune <strong className="text-white font-bold">{streakDays} lagataar</strong> din execute kiya hai. Consistency se tere brain mein positive habit loop ban raha hai. Is streak ko tootne mat dena.
@@ -744,14 +797,14 @@ function TabRival({ rivalData }: { rivalData?: RivalData }) {
         </div>
 
         <div className="relative z-10 space-y-6 max-w-2xl">
-          <div className="border-b border-white/5 pb-4">
+          <div className="pb-4">
             <div className="text-[8px] font-mono text-[#52525b] tracking-[0.2em] uppercase mb-1.5">Competition Base ({category})</div>
             <div className="text-sm sm:text-base md:text-lg font-bold text-[#d4d4d8]">
               Bhai, exactly tere jaisa goal lekar <strong className="text-white font-bold">{totalUsers.toLocaleString()} bachhe</strong> is waqt race mein hain.
             </div>
           </div>
           
-          <div className="border-b border-white/5 pb-4">
+          <div className="pb-4">
             <div className="text-[8px] font-mono text-[#52525b] tracking-[0.2em] uppercase mb-1.5">Frontrunners (The Real Threat)</div>
             <div className="text-sm sm:text-base md:text-lg font-bold text-[#d4d4d8]">
               Dhyan se sun. <strong className="text-white font-bold">{milestonePassed.toLocaleString()} bachho</strong> ne already tujhse zyada syllabus aur sprints complete kar liye hain. Woh aage hain tujhse.
@@ -784,7 +837,7 @@ function TabMarket({ marketData }: { marketData?: MarketData }) {
   return (
     <div className="flex flex-col gap-4 animate-fade-in w-full">
       {/* Hero Banner: Urgent Insight */}
-      <div className="relative overflow-hidden rounded-2xl border border-red-500/20 bg-gradient-to-br from-[#1a0505] to-black p-5 sm:p-8 shadow-[0_0_40px_rgba(239,68,68,0.05)]">
+      <div className="relative overflow-hidden rounded-2xl border-red-500/20 bg-gradient-to-br from-[#1a0505] to-black p-5 sm:p-8 shadow-[0_0_40px_rgba(239,68,68,0.05)]">
         <div className="absolute top-[-20%] right-[-5%] p-4 opacity-10 pointer-events-none">
           <Radio className="size-32 text-red-500" />
         </div>
@@ -824,9 +877,9 @@ function TabMarket({ marketData }: { marketData?: MarketData }) {
               signals.map((signal: MarketSignal, idx: number) => {
                 const isHigh = (signal.demandLevel || signal.trend || '').toLowerCase().includes('high') || (signal.demandLevel || signal.trend || '').toLowerCase().includes('fav');
                 return (
-                  <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-[#09090b] border border-white/5 hover:border-white/15 transition-colors">
+                  <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-[#09090b] hover: transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 font-mono text-[10px] font-bold text-[#71717a]">
+                      <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center font-mono text-[10px] font-bold text-[#71717a]">
                         0{idx + 1}
                       </div>
                       <div>
@@ -864,7 +917,7 @@ function TabMarket({ marketData }: { marketData?: MarketData }) {
               <div className="text-[#52525b] text-xs font-mono">Loading chapters...</div>
             ) : (
               gaps.map((gap: MarketGap, idx: number) => (
-                <div key={idx} className="p-4 rounded-xl bg-[#09090b] border border-white/5 relative overflow-hidden group/item hover:border-amber-500/30 transition-colors">
+                <div key={idx} className="p-4 rounded-xl bg-[#09090b] relative overflow-hidden group/item hover:border-amber-500/30 transition-colors">
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500/20 group-hover/item:bg-amber-500 transition-colors" />
                   <div className="pl-2">
                     <div className="text-xs sm:text-[13px] text-white font-medium mb-2.5 leading-snug">
@@ -872,7 +925,7 @@ function TabMarket({ marketData }: { marketData?: MarketData }) {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[9px] font-mono text-[#71717a] uppercase">Advantage Size:</span>
-                      <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                      <span className="text-[9px] font-mono font-bold text-amber-400 bg-amber-500/10 border-amber-500/20 px-2 py-0.5 rounded">
                         {gap.opportunitySize}
                       </span>
                     </div>
@@ -881,9 +934,9 @@ function TabMarket({ marketData }: { marketData?: MarketData }) {
               ))
             )}
             
-            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+            <div className="mt-4 pt-3 flex items-center justify-between">
               <span className="text-[10px] font-mono text-[#71717a] uppercase">Aggregated Readiness</span>
-              <span className="text-xs font-black text-red-500 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-md uppercase tracking-wider animate-pulse">
+              <span className="text-xs font-black text-red-500 bg-red-500/10 border-red-500/20 px-3 py-1 rounded-md uppercase tracking-wider animate-pulse">
                 Critical Danger
               </span>
             </div>
