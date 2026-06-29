@@ -18,6 +18,7 @@ interface Message {
   role: "user" | "fp";
   text: string;
   files?: { name: string; url: string; type: string }[];
+  createdAt?: string;
 }
 
 
@@ -148,7 +149,8 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
           setMessages(data.data.map((m: any) => ({
             id: m.id,
             role: m.role,
-            text: m.content
+            text: m.content,
+            createdAt: m.created_at || m.createdAt
           })));
         }
       } catch (err) {
@@ -299,6 +301,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         role: "user",
         text,
         files: filesPayload,
+        createdAt: new Date().toISOString(),
       });
     }
 
@@ -315,11 +318,30 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
     abortControllerRef.current = controller;
 
     try {
-      const historyPayload = currentMessages.slice(0, -1).map((m) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.text }]
-      }));
-      const payloadMessage = currentMessages[currentMessages.length - 1]?.text || "";
+      const historyPayload = currentMessages.slice(0, -1).map((m) => {
+        let textStr = m.text;
+        if (m.createdAt) {
+          try {
+            const dt = new Date(m.createdAt);
+            const dateStr = dt.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            textStr = `[Sent: ${dateStr}]\n${textStr}`;
+          } catch(e) {}
+        }
+        return {
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: textStr }]
+        };
+      });
+      
+      let payloadMessage = currentMessages[currentMessages.length - 1]?.text || "";
+      const lastMsgObj = currentMessages[currentMessages.length - 1];
+      if (lastMsgObj && lastMsgObj.createdAt) {
+        try {
+          const dt = new Date(lastMsgObj.createdAt);
+          const dateStr = dt.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          payloadMessage = `[Sent: ${dateStr}]\n${payloadMessage}`;
+        } catch(e) {}
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
@@ -361,7 +383,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         if (data?.data?.engine_result?.type === "onboarding_complete") {
           setSimulationData(data.data.engine_result.data);
         }
-        setMessages((prev) => [...prev, { id: String(Date.now()), role: "fp", text: reply }]);
+        setMessages((prev) => [...prev, { id: String(Date.now()), role: "fp", text: reply, createdAt: new Date().toISOString() }]);
       } else {
         // SSE STREAMING MODE
         const reader = res.body.getReader();
@@ -373,7 +395,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         let streamBuffer = "";
         
         // Push an empty message first
-        setMessages((prev) => [...prev, { id: newMsgId, role: "fp", text: "" }]);
+        setMessages((prev) => [...prev, { id: newMsgId, role: "fp", text: "", createdAt: new Date().toISOString() }]);
         setIsThinking(false);
         setIsStreaming(true);
 
