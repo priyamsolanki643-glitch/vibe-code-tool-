@@ -163,7 +163,7 @@ const { data: { session } } = await supabase.auth.getSession();
       <aside
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen transition-all duration-300 bg-black/40 backdrop-blur-2xl lg:bg-transparent lg:backdrop-blur-none overflow-y-auto no-scrollbar ${
+        className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen transition-all duration-300 bg-black/40 backdrop-blur-2xl lg:bg-transparent lg:backdrop-blur-none overflow-hidden ${
           isOpen ? "w-[260px] translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0"
         }`}
       >
@@ -274,7 +274,7 @@ const { data: { session } } = await supabase.auth.getSession();
         </div>
 
         {/* ── Scrollable History List ── */}
-        <div className="flex-1 px-3 py-4 flex flex-col gap-4">
+        <div className="flex-1 px-3 py-4 flex flex-col gap-4 overflow-y-auto no-scrollbar">
           {isOpen && (
             <>
               {/* History List */}
@@ -372,7 +372,8 @@ const { data: { session } } = await supabase.auth.getSession();
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        document.documentElement.classList.toggle('light-theme');
+                        const isLight = document.documentElement.classList.toggle('light-theme');
+                        localStorage.setItem('fp_theme', isLight ? 'light' : 'dark');
                         setIsSignOutOpen(false);
                       }}
                       className="flex items-center gap-2.5 w-full px-2.5 py-2 text-[#e4e4e7] hover:bg-white/5 font-medium text-[13px] rounded-lg transition-colors cursor-pointer"
