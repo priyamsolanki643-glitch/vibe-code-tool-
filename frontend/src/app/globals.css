@@ -103,6 +103,13 @@
   --radius:            12px;
 }
 
+.light-theme {
+  filter: invert(1) hue-rotate(180deg);
+}
+.light-theme img, .light-theme video, .light-theme [data-no-invert="true"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 .dark {
   --background:        #000000;
   --foreground:        #f2efe8;

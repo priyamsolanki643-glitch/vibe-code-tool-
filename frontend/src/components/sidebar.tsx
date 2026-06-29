@@ -81,14 +81,17 @@ const { data: { session } } = await supabase.auth.getSession();
     }
   };
 
-  const fetchThreads = async () => {
+  const fetchThreads = async (query?: string) => {
     try {
         const { data: { session } } = await supabase.auth.getSession();
         if (isAnonymous || !session) return;
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      const res = await fetch(`${baseUrl}/api/v1/threads?t=${Date.now()}`, {
-        headers: { "Authorization": `Bearer ${session?.access_token}` },
+        const url = new URL(`${baseUrl}/api/v1/threads`);
+        url.searchParams.append('t', String(Date.now()));
+        if (query) url.searchParams.append('q', query);
 
+      const res = await fetch(url.toString(), {
+        headers: { "Authorization": `Bearer ${session?.access_token}` },
         cache: 'no-store'
       });
       const data = await res.json();
@@ -125,9 +128,17 @@ const { data: { session } } = await supabase.auth.getSession();
 
   useEffect(() => {
     fetchThreads();
-    window.addEventListener('refresh-sidebar', fetchThreads);
-    return () => window.removeEventListener('refresh-sidebar', fetchThreads);
+    const handleRefresh = () => fetchThreads();
+    window.addEventListener('refresh-sidebar', handleRefresh);
+    return () => window.removeEventListener('refresh-sidebar', handleRefresh);
   }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchThreads(searchQuery);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -144,7 +155,7 @@ const { data: { session } } = await supabase.auth.getSession();
             e.stopPropagation();
             setIsOpen(false);
           }}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden animate-fade-in-up"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in-up"
           style={{ animationDuration: '200ms' }}
         />
       )}
@@ -152,7 +163,7 @@ const { data: { session } } = await supabase.auth.getSession();
       <aside
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen transition-all duration-300 bg-black/40 backdrop-blur-2xl md:bg-transparent md:backdrop-blur-none overflow-y-auto no-scrollbar ${
+        className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen transition-all duration-300 bg-black/40 backdrop-blur-2xl lg:bg-transparent lg:backdrop-blur-none overflow-y-auto no-scrollbar ${
           isOpen ? "w-[260px] translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0"
         }`}
       >
@@ -260,7 +271,6 @@ const { data: { session } } = await supabase.auth.getSession();
             {isOpen && <span className={`text-[10px] font-mono ${activeItem === "vault" ? "text-[#ffffff]/70" : "text-[#52525b]"}`}>2x tap</span>}
           </button>
 
-
         </div>
 
         {/* ── Scrollable History List ── */}
@@ -359,6 +369,17 @@ const { data: { session } } = await supabase.auth.getSession();
                   </div>
                 ) : (
                   <div className="flex flex-col">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        document.documentElement.classList.toggle('light-theme');
+                        setIsSignOutOpen(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-2.5 py-2 text-[#e4e4e7] hover:bg-white/5 font-medium text-[13px] rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Atom className="size-3.5 text-[#a1a1aa]" />
+                      Toggle Theme
+                    </button>
                     <button 
                       onClick={onSignOut}
                       className="flex items-center gap-2.5 w-full px-2.5 py-2 text-[#e4e4e7] hover:bg-white/5 font-medium text-[13px] rounded-lg transition-colors cursor-pointer"

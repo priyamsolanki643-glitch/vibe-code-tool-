@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Vault, Square, Atom } from "lucide-react";
+import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Vault, Square, Atom, Zap } from "lucide-react";
 import { GyroLogo } from "./gyro-logo";
 import { supabase } from "@/utils/supabase/client";
 import ReactMarkdown from "react-markdown";
 interface ChatViewProps {
   onOpenSidebar: () => void;
   onOpenVault: () => void;
-  onOpenFocusMode?: () => void;
   isAnonymous?: boolean;
   onRequireAuth?: () => void;
 }
@@ -23,7 +22,7 @@ interface Message {
 
 
 
-export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonymous, onRequireAuth }: ChatViewProps) {
+export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAuth }: ChatViewProps) {
   const router = useRouter();
   const [simulationData, setSimulationData] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -45,6 +44,14 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  useEffect(() => {
+    const hour = new Date().getHours();
+    let text = "Good Evening";
+    if (hour < 12) text = "Good Morning";
+    else if (hour < 17) text = "Good Afternoon";
+    setGreeting({ text, accent: "Ready to execute?", animateAccent: true });
+  }, []);
+
   // Initialize anonymous id
   useEffect(() => {
     if (isAnonymous && typeof window !== "undefined") {
@@ -65,9 +72,9 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
   ];
 
   const loadingPhrases = [
-    "Researching...",
-    "Analyzing...",
-    "Observing...",
+    "Using brainpower...",
+    "Building your plan...",
+    "Checking market data...",
     "Synthesizing..."
   ];
 
@@ -194,12 +201,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
   const startSpeechRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser. Dictation simulated.");
-      setIsRecording(true);
-      setTimeout(() => {
-        setInput(prev => prev + (prev ? " " : "") + "Simulated voice command query.");
-        setIsRecording(false);
-      }, 1800);
+      alert("Speech recognition is not supported in this browser.");
       return;
     }
 
@@ -250,7 +252,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
     if (isAnonymous) {
       const currentCount = parseInt(localStorage.getItem("fp_anon_count") || "0");
       if (currentCount >= 3) {
-        if (onRequireAuth) onRequireAuth();
+        setMessages(prev => [...prev, { id: 'limit', role: 'fp', text: "You've reached your free limit. Sign up to continue chatting!" }]);
         return;
       }
       localStorage.setItem("fp_anon_count", String(currentCount + 1));
@@ -319,7 +321,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
       }));
       const payloadMessage = currentMessages[currentMessages.length - 1]?.text || "";
 
-const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
 
       const res = await fetch(`${baseUrl}/api/v1/interaction/message/stream`, {
@@ -428,9 +430,12 @@ const { data: { session } } = await supabase.auth.getSession();
         return;
       }
       console.error("CRITICAL FETCH ERROR:", error);
+      const errorMsg = isAnonymous 
+        ? "Network issue right now, bro. Please try again. 🔁" 
+        : "Abhi connectivity issue hai bhai. Ek baar dobara try kar. 🔁";
       setMessages((prev) => [
         ...prev,
-        { id: String(Date.now()), role: "fp", text: "Connection error. Strategy engine offline." },
+        { id: String(Date.now()), role: "fp", text: errorMsg },
       ]);
     } finally {
       setIsThinking(false);
@@ -615,6 +620,13 @@ const { data: { session } } = await supabase.auth.getSession();
         {/* Header Actions */}
         <div className="flex items-center gap-1 md:gap-2 -mr-1 pointer-events-auto">
           <button 
+            onClick={onOpenVault}
+            className="p-2 text-[#ffffff]/60 hover:text-[#ffffff] active:scale-90 transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Vault className="size-5" />
+            <span className="hidden md:inline text-sm font-medium">Vault</span>
+          </button>
+          <button 
             onClick={() => window.dispatchEvent(new Event('new-thread'))}
             className="p-2 text-[#ffffff] hover:text-[#f4f4f5] active:scale-90 transition-all cursor-pointer drop-shadow-[0_0_12px_rgba(255, 255, 255,0.6)]"
           >
@@ -663,20 +675,43 @@ const { data: { session } } = await supabase.auth.getSession();
             </div>
           ) : isInitial ? (
             /* Minimalist Empty State */
-            <div className="flex-1 flex flex-col items-center justify-center py-12">
+            <div className="flex-1 flex flex-col items-center justify-center py-12 px-4">
               <div 
-                className="reveal-chat-item flex flex-col items-center gap-2.5"
+                className="reveal-chat-item flex flex-col items-center gap-2.5 w-full"
                 style={{ animationDelay: "50ms" }}
               >
                 <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none">
                   {greeting.text}
                 </h2>
                 <h2 
-                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
+                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] mb-8 md:mb-12 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
                   style={{ textShadow: "0 0 15px rgba(255,255,255,0.3)" }}
                 >
                   {greeting.accent}
                 </h2>
+
+                {/* Perplexity-style Suggested Prompts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl animate-fade-in-up" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
+                  {[
+                    { icon: <Target className="size-4" />, text: "Mujhe apna main goal set karna hai aaj." },
+                    { icon: <RefreshCw className="size-4" />, text: "Routine puri tarah kharab ho chuka hai, fix it." },
+                    { icon: <Check className="size-4" />, text: "Consistency nahi ban rahi, strict plan chahiye." },
+                    { icon: <Zap className="size-4" />, text: "Aaj ka target lock karna hai. Let's execute." }
+                  ].map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSend(suggestion.text)}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-[#18181b]/50 backdrop-blur-md hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all text-left group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
+                    >
+                      <div className="text-[#a1a1aa] group-hover:text-white transition-colors shrink-0">
+                        {suggestion.icon}
+                      </div>
+                      <span className="text-[14px] font-medium text-[#d4d4d8] group-hover:text-white transition-colors leading-snug">
+                        {suggestion.text}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (

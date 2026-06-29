@@ -7,7 +7,6 @@ import { Sidebar } from "@/components/sidebar";
 import { ChatView } from "@/components/chat-view";
 import { VaultModal } from "@/components/vault-modal";
 import { SplashScreen } from "@/components/splash-screen";
-import { FocusMode } from "@/components/focus-mode";
 import { Archive } from "lucide-react";
 
 export default function EntryPoint() {
@@ -16,15 +15,22 @@ export default function EntryPoint() {
   const [hasSession, setHasSession] = useState(false);
   const [hasActiveMission, setHasActiveMission] = useState(false);
   const [isVaultOpen, setIsVaultOpen] = useState(false);
-  const [isFocusModeOpen, setIsFocusModeOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("fp_has_visited")) {
+        setShowSplash(false);
+      }
+    }
+  }, []);
   const doubleTapRef = useRef(0);
 
   useEffect(() => {
     const checkActiveMission = async () => {
       try {
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
         const { data: { session } } = await supabase.auth.getSession();
         const anonId = localStorage.getItem("fp_anon_id");
         if (!session && !anonId) return;
@@ -162,7 +168,12 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
   }, [isLocked, isVaultOpen]);
 
   if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={() => {
+      setShowSplash(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fp_has_visited", "true");
+      }
+    }} />;
   }
 
   if (!showSplash && !isLocked) {
@@ -196,7 +207,6 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       <ChatView
         onOpenSidebar={() => setIsSidebarOpen(prev => !prev)}
         onOpenVault={() => setIsVaultOpen(true)}
-        onOpenFocusMode={() => setIsFocusModeOpen(true)}
         isAnonymous={isAnonymous}
         onRequireAuth={() => {
           setIsLocked(false);
@@ -205,19 +215,6 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       />
       
       {isVaultOpen && <VaultModal onClose={() => setIsVaultOpen(false)} />}
-      
-      {/* Integrating the Gamified Focus Mode Vault */}
-      <FocusMode 
-        isOpen={isFocusModeOpen} 
-        onClose={(distracted) => {
-          setIsFocusModeOpen(false);
-          if (distracted) {
-            // Ideally trigger the AI backend to roast them here.
-            console.log("Streak broken due to distraction!");
-          }
-        }} 
-        taskTitle="Deep Execution Phase" 
-      />
     </div>
   );
 }
