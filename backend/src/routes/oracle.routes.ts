@@ -234,10 +234,10 @@ User message: "${message}"`;
           await stream.writeSSE({
             event: 'soul',
             data: JSON.stringify({
-              soul: 'DRILL_SERGEANT',
-              soulName: SOUL_METADATA['DRILL_SERGEANT'].name,
-              emoji: SOUL_METADATA['DRILL_SERGEANT'].emoji,
-              color: SOUL_METADATA['DRILL_SERGEANT'].color,
+              soul: 'VISIONARY',
+              soulName: SOUL_METADATA['VISIONARY'].name,
+              emoji: SOUL_METADATA['VISIONARY'].emoji,
+              color: SOUL_METADATA['VISIONARY'].color,
               emotion: 'NEUTRAL',
               tone: 'AGGRESSIVE',
               thread_id: currentThreadId
