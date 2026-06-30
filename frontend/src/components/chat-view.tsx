@@ -346,7 +346,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
       const { data: { session } } = await supabase.auth.getSession();
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
 
-      const res = await fetch(`${baseUrl}/api/v1/interaction/message/stream`, {
+      const res = await fetch(`${baseUrl}/api/v1/oracle/chat/stream`, {
         method: "POST",
         signal: controller.signal,
         headers: { 
@@ -357,7 +357,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         body: JSON.stringify({
           message: payloadMessage,
           conversationHistory: historyPayload,
-          thread_id: threadId
+          studentContext: "Lumensky user"
         }),
       });
 
@@ -410,35 +410,32 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
             streamBuffer = lines.pop() || "";
             
             for (const line of lines) {
-              if (line.startsWith("data:")) {
-                const dataStr = line.replace(/^data:\s*/, "");
+              if (line.startsWith("event: soul")) continue;
+              if (line.startsWith("event: done")) { done = true; break; }
+              if (line.startsWith("event: error")) continue;
+
+              if (line.startsWith("data: ")) {
+                const dataStr = line.slice(6);
                 if (dataStr === "[DONE]") {
                   done = true;
                   break;
                 }
+                
                 try {
                   const eventData = JSON.parse(dataStr);
-                  
-                  if (eventData.type === "metadata") {
-                    if (eventData.data?.thread_id && !threadId) {
-                      setThreadId(eventData.data.thread_id);
-                      window.dispatchEvent(new Event('refresh-sidebar'));
-                    }
-                    if (eventData.data?.engine_result?.type === "onboarding_complete") {
-                      setSimulationData(eventData.data.engine_result.data);
-                    }
-                  } else if (eventData.type === "text" || eventData.type === "disclaimer") {
-                    if (eventData.text) {
-                      accumulatedReply += eventData.text;
-                      // Update the specific message
-                      setMessages((prev) => 
-                        prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m)
-                      );
-                      scrollToBottom();
-                    }
+                  if (eventData.soul) {
+                    // Soul badge metadata - we can add it to state if we want to show it in ChatView later
+                    continue;
                   }
                 } catch (e) {
-                  // Partial JSON chunk parsing error, ignore
+                  // If it's not JSON, it's raw text chunk from Oracle!
+                  if (dataStr) {
+                    accumulatedReply += dataStr;
+                    setMessages((prev) => 
+                      prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m)
+                    );
+                    scrollToBottom();
+                  }
                 }
               }
             }

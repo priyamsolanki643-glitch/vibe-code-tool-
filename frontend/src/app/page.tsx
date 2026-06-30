@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { LandingPage } from "@/components/landing-page";
 import { Sidebar } from "@/components/sidebar";
-import { OracleChat } from "@/components/oracle-chat";
+import { ChatView } from "@/components/chat-view";
 import { VaultModal } from "@/components/vault-modal";
 import { SplashScreen } from "@/components/splash-screen";
 import { Archive } from "lucide-react";
@@ -204,9 +204,14 @@ export default function EntryPoint() {
         isAnonymous={isAnonymous}
       />
       
-      <OracleChat
+      <ChatView
         onOpenSidebar={() => setIsSidebarOpen(prev => !prev)}
         onOpenVault={() => setIsVaultOpen(true)}
+        isAnonymous={isAnonymous}
+        onRequireAuth={() => {
+          setIsLocked(false);
+          setIsAnonymous(false);
+        }}
       />
       
       {isVaultOpen && <VaultModal onClose={() => setIsVaultOpen(false)} />}
