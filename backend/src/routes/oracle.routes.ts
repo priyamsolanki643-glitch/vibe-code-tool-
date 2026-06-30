@@ -364,7 +364,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-1.5-flash',
         contents,
         config: {
           maxOutputTokens: 8192,
