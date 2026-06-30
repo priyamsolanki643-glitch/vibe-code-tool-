@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Lock, X, TrendingUp, CheckCircle, Target, ArrowRight, Trophy, AlertTriangle, Radio, ChevronLeft, FileText, Download, Share2, HelpCircle
 } from "lucide-react";
+import { VaultMissionSkeleton, VaultMirrorSkeleton, VaultMarketSkeleton, VaultRivalSkeleton } from "./ui/skeleton";
 
 type TabId = "missions" | "mirror" | "debt" | "rival" | "market";
 
@@ -317,9 +318,12 @@ export function VaultModal({ onClose }: VaultModalProps) {
             style={{ opacity: tabTransition ? 0 : 1 }}
           >
             {loading ? (
-              <div className="h-[300px] flex flex-col items-center justify-center gap-3">
-                <div className="size-5 border-2 -white rounded-full animate-spin" />
-                <span className="text-[10px] font-mono tracking-widest text-[#71717a] uppercase">Decrypting Logs...</span>
+              <div className="w-full max-w-5xl mx-auto">
+                {activeTab === "missions" && <VaultMissionSkeleton />}
+                {activeTab === "mirror" && <VaultMirrorSkeleton />}
+                {activeTab === "debt" && <VaultMissionSkeleton />}
+                {activeTab === "rival" && <VaultRivalSkeleton />}
+                {activeTab === "market" && <VaultMarketSkeleton />}
               </div>
             ) : (
               <div className="w-full max-w-5xl mx-auto">

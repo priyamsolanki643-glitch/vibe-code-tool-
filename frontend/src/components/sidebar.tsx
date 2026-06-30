@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Archive, LogOut, MoreVertical, Trash2, Atom, Target } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
+import { SidebarHistorySkeleton } from "./ui/skeleton";
 
 import { GyroLogo } from "./gyro-logo";
 
@@ -33,6 +34,7 @@ export function Sidebar({ onOpenVault, onSignOut, isOpen, setIsOpen, isAnonymous
   const [isSignOutOpen, setIsSignOutOpen] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [historyData, setHistoryData] = useState<HistoryGroup[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [activeChatMenu, setActiveChatMenu] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("Operator");
 
@@ -82,9 +84,10 @@ const { data: { session } } = await supabase.auth.getSession();
   };
 
   const fetchThreads = async (query?: string) => {
+    if (!query) setIsLoadingHistory(true);
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (isAnonymous || !session) return;
+        if (isAnonymous || !session) { setIsLoadingHistory(false); return; }
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
         const url = new URL(`${baseUrl}/api/v1/threads`);
         url.searchParams.append('t', String(Date.now()));
@@ -123,6 +126,8 @@ const { data: { session } } = await supabase.auth.getSession();
       }
     } catch (err) {
       console.error("Failed to load threads", err);
+    } finally {
+      setIsLoadingHistory(false);
     }
   };
 
@@ -278,7 +283,9 @@ const { data: { session } } = await supabase.auth.getSession();
           {isOpen && (
             <>
               {/* History List */}
-              {(() => {
+              {isLoadingHistory ? (
+                <SidebarHistorySkeleton />
+              ) : (() => {
                 const filteredHistory = historyData.map(g => ({
                   ...g,
                   chats: g.chats.filter((c: ChatThread) => c?.title?.toLowerCase().includes(searchQuery.toLowerCase()))
