@@ -53,5 +53,6 @@ export function getBrainForSoul(soul: SoulId): string {
     case 'VISIONARY':      return getElonBrain();
     case 'SCHOLAR':        return getTopperBrain();
     case 'HACKER':         return getGiglBrain();
+    default:               return getElonBrain();
   }
 }

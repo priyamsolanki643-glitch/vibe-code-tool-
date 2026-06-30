@@ -71,7 +71,7 @@ function buildOracleSystemPrompt(
     .filter(s => s !== analysis.primary_soul)[0];
   const supportingBrain = supportingSoul ? getBrainForSoul(supportingSoul) : '';
 
-  const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId];
+  const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
 
   return `You are ORACLE — a living, breathing mentor who carries the combined wisdom of the world's most elite achievers.
 
