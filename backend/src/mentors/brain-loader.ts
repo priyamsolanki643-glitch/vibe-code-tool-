@@ -40,11 +40,12 @@ export function getGiglBrain(): string {
   return _giglBrain;
 }
 
-export type SoulId = 'VISIONARY' | 'SCHOLAR' | 'HACKER';
+export type SoulId = 'VISIONARY' | 'SCHOLAR' | 'DRILL_SERGEANT' | 'HACKER';
 
 export const SOUL_METADATA: Record<SoulId, { name: string; emoji: string; color: string }> = {
   VISIONARY:      { name: 'The Visionary',      emoji: '🚀', color: '#3B82F6' },
   SCHOLAR:        { name: 'The Scholar',         emoji: '📚', color: '#22C55E' },
+  DRILL_SERGEANT: { name: 'The Drill Sergeant',  emoji: '🔥', color: '#F97316' },
   HACKER:         { name: 'The Hacker',          emoji: '⚡', color: '#EAB308' },
 };
 
@@ -52,6 +53,7 @@ export function getBrainForSoul(soul: SoulId): string {
   switch (soul) {
     case 'VISIONARY':      return getElonBrain();
     case 'SCHOLAR':        return getTopperBrain();
+    case 'DRILL_SERGEANT': return getHesfyBrain();
     case 'HACKER':         return getGiglBrain();
     default:               return getElonBrain();
   }
