@@ -447,9 +447,15 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                       prev.map((m) => m.id === newMsgId ? { ...m, soul: newSoul.name, soulEmoji: newSoul.emoji, soulColor: newSoul.color } : m)
                     );
                     continue;
+                  } else if (eventData.chunk !== undefined) {
+                    accumulatedReply += eventData.chunk;
+                    setMessages((prev) => 
+                      prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m)
+                    );
+                    scrollToBottom();
                   }
                 } catch (e) {
-                  // If it's not JSON, it's raw text chunk from Oracle!
+                  // Legacy fallback: If it's not JSON, it's raw text chunk from Oracle!
                   if (dataStr) {
                     accumulatedReply += dataStr;
                     setMessages((prev) => 

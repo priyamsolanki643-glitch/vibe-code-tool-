@@ -234,7 +234,7 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       for await (const chunk of responseStream) {
         const text = chunk.text;
         if (text) {
-          await stream.writeSSE({ data: text });
+          await stream.writeSSE({ data: JSON.stringify({ chunk: text }) });
         }
       }
 
