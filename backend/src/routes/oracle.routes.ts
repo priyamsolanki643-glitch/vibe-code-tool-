@@ -197,6 +197,117 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         DbService.getActiveMission(userId).catch((): any => null)
       ]);
 
+      // ── Intercept for Consistency Onboarding ─────────────────────────────────────
+      if (activeMission && activeMission.consistencyScore === -1) {
+        let extractedScore: number | null = null;
+        
+        const extractPrompt = `
+Analyze the user's message and determine if they have provided a numerical self-assessment of their consistency out of 100.
+If they provided a number, extract it as an integer between 0 and 100.
+If no clear number is provided or if they are dodging the question, return {"score": null}.
+Output ONLY valid JSON. Do not include markdown formatting.
+User message: "${message}"`;
+        
+        try {
+          const extractRes = await LLMService.generateValidatedResponse(userId, extractPrompt, [], [], 3, 1000, true);
+          if (extractRes && extractRes.response_text) {
+            const parsed = JSON.parse(extractRes.response_text);
+            if (typeof parsed.score === 'number' && parsed.score >= 0 && parsed.score <= 100) {
+              extractedScore = parsed.score;
+            }
+          }
+        } catch (e) {
+          console.error("Consistency extraction parse error:", e);
+        }
+
+        if (extractedScore !== null) {
+          activeMission.consistencyScore = extractedScore;
+          await DbService.saveMission(activeMission);
+          await DbService.addConsistencyLog(userId, extractedScore);
+          
+          // Inform Oracle of this new context implicitly via conversation history
+          const systemLogMessage = { role: 'user', parts: [{ text: `[SYSTEM LOG: User self-assessed initial consistency score as ${extractedScore}/100]` }] };
+          if (Array.isArray(conversationHistory)) {
+             conversationHistory.push(systemLogMessage);
+          } else {
+             // @ts-ignore
+             conversationHistory = [systemLogMessage];
+          }
+        } else {
+          // INTERCEPT: Stream a hard-coded response demanding the score
+          const responseText = "Vault ready hai. Par pehle bata, aaj ke din honestly teri consistency 100 mein se kitni hai? Ek number de (0-100) uske baad main aage badhunga.";
+          
+          await stream.writeSSE({
+            event: 'soul',
+            data: JSON.stringify({
+              soul: 'DRILL_SERGEANT',
+              soulName: SOUL_METADATA['DRILL_SERGEANT'].name,
+              emoji: SOUL_METADATA['DRILL_SERGEANT'].emoji,
+              color: SOUL_METADATA['DRILL_SERGEANT'].color,
+              emotion: 'NEUTRAL',
+              tone: 'AGGRESSIVE',
+              thread_id: currentThreadId
+            })
+          });
+          
+          // Stream the responseText chunk
+          await stream.writeSSE({ data: JSON.stringify({ chunk: responseText }) });
+          await DbService.saveMessage(currentThreadId, userId, 'fp', responseText);
+          await stream.writeSSE({ event: 'done', data: '[DONE]' });
+          return;
+        }
+      }
+
+      // Background task: Auto-extract mission if no active mission exists yet and this seems like a goal
+      if (!activeMission && conversationHistory && conversationHistory.length >= 2) {
+        LLMService.classifyMessageOutcome(message).then(async () => {
+          try {
+            const extractionPrompt = `
+Analyze the following conversation to determine if the user has established a clear overarching goal or mission.
+If they have NOT established a clear goal, return null.
+If they HAVE established a goal, extract it into this JSON format:
+{
+  "missionName": "Short descriptive title (max 4 words)",
+  "lockedPath": "alpha or beta (alpha = aggressive, beta = conservative)",
+  "totalDays": 90,
+  "mindsetBrief": "Short motivational quote summarizing their drive",
+  "strategyContent": "High-level summary of the phases/steps they need to execute."
+}
+
+Conversation:
+${conversationHistory.map((m: any) => m.role + ': ' + m.parts[0].text).join('\n')}
+user: ${message}
+
+Output ONLY valid JSON inside the response_text string value. Do not include markdown formatting.
+For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\\":\\"alpha\\"}"}`;
+
+            const extractionRes = await LLMService.generateValidatedResponse(userId, extractionPrompt, [], [], 3, 1000, true);
+            if (extractionRes.response_text && extractionRes.response_text.trim() !== 'null') {
+              const parsed = JSON.parse(extractionRes.response_text);
+              if (parsed.missionName) {
+                await DbService.saveMission({
+                  user_id: userId,
+                  missionName: parsed.missionName,
+                  lockedPath: parsed.lockedPath || 'alpha',
+                  probabilityLow: 25.0,
+                  probabilityHigh: 75.0,
+                  dayNumber: 1,
+                  totalDays: parsed.totalDays || 90,
+                  consistencyScore: -1,
+                  streakDays: 0,
+                  mindsetBrief: parsed.mindsetBrief || "Execute the vision.",
+                  strategyContent: parsed.strategyContent || "Phase 1 initialized.",
+                  chatThreadId: currentThreadId
+                });
+                await DbService.addConsistencyLog(userId, -1);
+              }
+            }
+          } catch (e) {
+            console.error('Background Mission Extraction Error:', e);
+          }
+        });
+      }
+
       const state_context: any = null; // Passed via raw string in Oracle prompt instead
 
       const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
