@@ -257,10 +257,18 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       const { GoogleGenAI } = await import('@google/genai');
       const client = new GoogleGenAI({ apiKey: keys[0] });
 
+      // Sanitize conversation history to remove timestamps like [Sent: 30 Jun, 09:19 pm]
+      const sanitizedHistory = (conversationHistory || []).map(msg => ({
+        ...msg,
+        parts: msg.parts.map(part => ({
+          text: part.text.replace(/^\[Sent:.*?\]\s*/i, '')
+        }))
+      }));
+
       const contents = [
         { role: 'user' as const, parts: [{ text: `[SYSTEM INITIALIZATION]\n${masterSystemPrompt}` }] },
         { role: 'model' as const, parts: [{ text: 'Understood. I am ORACLE infused with the 16-layer OmniEngine. Ready.' }] },
-        ...(conversationHistory || []),
+        ...sanitizedHistory,
         { role: 'user' as const, parts: [{ text: message }] }
       ];
 
