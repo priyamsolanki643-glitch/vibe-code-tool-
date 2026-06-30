@@ -847,7 +847,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                           className="relative flex-1 space-y-4 select-text min-w-0 max-w-full group cursor-pointer md:cursor-auto"
                           onClick={(e) => handleMessageClick(e, m.id)}
                         >
-                          <div className="font-sans prose prose-invert prose-p:leading-[1.9] prose-p:text-[15.5px] prose-p:mb-5 prose-p:text-white/85 prose-p:font-[300] prose-p:tracking-[0.02em] prose-li:my-1 prose-ul:my-3 prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-wide text-[16px] max-w-3xl break-words">
+                          <div className="font-serif prose prose-invert prose-p:leading-[1.7] prose-p:text-[16px] prose-p:mb-5 prose-p:text-[#ececec] prose-li:my-2 prose-li:text-[#ececec] prose-ul:my-5 prose-headings:font-serif prose-headings:font-semibold prose-headings:text-[#ececec] prose-headings:tracking-normal prose-strong:text-[#ffffff] prose-strong:font-semibold text-[16px] max-w-3xl break-words tracking-[0.01em]">
                             <ReactMarkdown>
                               {m.text}
                             </ReactMarkdown>
