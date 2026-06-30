@@ -707,11 +707,11 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
 
       {/* ── Message stream area ── */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar relative z-10 pt-16">
-        <div className="max-w-[720px] mx-auto px-4 md:px-8 h-full flex flex-col justify-between">
+        <div className="max-w-[720px] mx-auto px-4 md:px-8 min-h-full flex flex-col">
           
           {isLoadingThread ? (
             /* Skeleton Loading State for old thread */
-            <div className="py-6 space-y-8 animate-message-reveal">
+            <div className="py-6 space-y-6 animate-message-reveal">
               {/* Skeleton: user message right-aligned */}
               <div className="flex justify-end">
                 <div className="max-w-[65%] space-y-2">
@@ -786,7 +786,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
             </div>
           ) : (
             /* Messages list (bubbleless, flat style) */
-            <div className="py-6 space-y-8">
+            <div className="py-4 space-y-4">
               {messages.map((m) => {
                 const isUser = m.role === "user";
 
