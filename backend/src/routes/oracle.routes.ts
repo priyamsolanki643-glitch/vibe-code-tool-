@@ -119,8 +119,13 @@ ORACLE COMMANDMENTS (Follow these absolutely):
    - Structure your response cleanly. Use headers if necessary.
    - **CRITICAL:** Do NOT repeat or output any timestamps (e.g., [Sent: 30 Jun, 08:12 pm]). Ignore them in the conversation history.
 
-4. ENDING:
-   Conclude with a thoughtful, actionable next step that the student can reflect on or execute immediately.`;
+4. LENGTH & PROPORTION (The Brevity Rule):
+   - Match the student's input length. If they just say "hi" or "hello", your response must be exactly 1 or 2 short sentences (e.g., "Hi! What can I help you with today?"). Do NOT give a massive paragraph for a simple greeting.
+   - Only give detailed, multi-paragraph answers when the student asks a complex question or shares a deep problem.
+   
+5. ENDING:
+   - For simple greetings, end naturally without a forced action.
+   - For complex problems, conclude with a thoughtful, actionable next step that the student can execute immediately.`;
 }
 
 // ─── Classifier AI Call ──────────────────────────────────────────────────────
