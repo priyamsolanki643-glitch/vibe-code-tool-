@@ -406,20 +406,23 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       // Accumulate the full response to prevent Serverless SSE connection drops
       let fullAiResponse = "";
       for await (const chunk of responseStream) {
-        const text = chunk.text;
+        const finishReason = chunk.candidates?.[0]?.finishReason;
+        
+        let text = "";
+        try {
+          text = chunk.text || "";
+        } catch (e) {
+          console.warn("[ORACLE] SDK blocked text access on chunk. Reason:", finishReason);
+        }
+
         if (text) {
           fullAiResponse += text;
         }
 
-        
-        const finishReason = chunk.candidates?.[0]?.finishReason;
         if (finishReason && finishReason !== 'STOP') {
           console.warn('[ORACLE] Stream ended prematurely. Reason:', finishReason);
-          await stream.writeSSE({ 
-            data: JSON.stringify({ 
-              chunk: `\n\n[System Notification: AI Stream halted. Reason: ${finishReason}. Note: Hesfy's extreme vocabulary may have triggered Google's strict AI filters despite bypass attempts.]` 
-            }) 
-          });
+          fullAiResponse += `\n\n[System Notification: AI Stream halted. Reason: ${finishReason}.]`;
+          break; // Stop processing further chunks safely
         }
       }
       
