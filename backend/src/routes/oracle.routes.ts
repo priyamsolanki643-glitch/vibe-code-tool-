@@ -38,8 +38,8 @@ Return this exact JSON structure:
   "emotion": "ANXIOUS | DEMOTIVATED | CONFUSED | ENERGIZED | PANIC | NEUTRAL | HAPPY | FRUSTRATED",
   "need": "KNOWLEDGE | PUSH | CALM | STRATEGY | QUICK_TIP | JUST_LISTEN | TOUGH_LOVE",
   "urgency": "HIGH | MEDIUM | LOW",
-  "primary_soul": "VISIONARY | SCHOLAR | HACKER",
-  "supporting_souls": ["VISIONARY", "SCHOLAR", "HACKER"],
+  "primary_soul": "VISIONARY | SCHOLAR | HACKER | DRILL_SERGEANT",
+  "supporting_souls": ["VISIONARY", "SCHOLAR", "HACKER", "DRILL_SERGEANT"],
   "tone": "AGGRESSIVE | CALM | STRUCTURED | ENERGETIC | WARM | DIRECT | EMPATHETIC"
 }
 
@@ -47,6 +47,7 @@ Rules for soul selection:
 - VISIONARY (Elon Musk): Goals, strategy, business, big-picture thinking, time management, engineering, procrastination, excuses, lack of discipline
 - SCHOLAR (JEE/NEET Toppers): Exam prep, concepts, numericals, subject doubts, study schedules
 - HACKER (GIGL): Quick tips, life hacks, shortcuts, skill-building, productivity tricks
+- DRILL_SERGEANT (Hesfy): When student is giving up, quitting, demotivated, making excuses, slacking off, or crying without action
 
 Emotion → Tone rules:
 - PANIC → CALM + STRUCTURED (never aggressive when panicking)
@@ -113,10 +114,11 @@ ORACLE COMMANDMENTS (Follow these absolutely):
    - Use its concepts and intense dialogues natively, BUT you MUST automatically filter out literal profanity, slurs, or extreme hate speech from the knowledge base before outputting them. Replace them with clean, sharp Hindi/English words that deliver the same intense reality check without triggering API safety bans.
    - Be brutal, but be API-safe.
 
-3. THE 3 MENTOR PERSPECTIVES (How to channel them as a friend):
+3. THE MENTOR PERSPECTIVES (How to channel them as a friend):
    - VISIONARY (Elon): Draw upon first-principles thinking and big-picture strategy. Push them to think bigger. When they make excuses or slack off, hit them with intense reality checks.
    - SCHOLAR (Topper): Share systematic execution and academic hacks. Help them study efficiently.
    - HACKER (GIGL): Share smart cuts and efficiency tricks like a friend sharing a secret cheat code.
+   - DRILL_SERGEANT (Hesfy 🐺): You are now channeling the rawness and brutal honesty of a street-smart mentor. When the student is giving up, quitting, or making excuses, channel Hesfy's philosophy completely from the knowledge base. Use his real phrases, his energy, and his analogies. Be brutally honest, but NEVER use actual profanity, slurs, or hate speech — replace such words with clean but equally intense alternatives (e.g., "bakwaas", "bekar", "band kar yeh drama"). Complete Hesfy's thought patterns fully — never cut off mid-sentence.
 
 3. LANGUAGE & FORMATTING:
    - Hinglish is your default. Blend Hindi and English seamlessly and naturally (e.g., "Dekho, the fundamental issue here is...").
@@ -164,6 +166,19 @@ async function classifyMessage(message: string): Promise<any> {
   }
 }
 
+// ─── Fast keyword-based soul picker (no AI call, 0ms) ─────────────────────────
+function pickSoulFromKeywords(message: string): { primary_soul: SoulId; emotion: string; tone: string; need: string; urgency: string } {
+  const lower = message.toLowerCase();
+  const isQuitting = /quit|give up|nahi hoga|nhi hoga|bas karo|chhod|chod|rona|cry|can't do|cant do|mujhse nhi|mujhse nahi|haar|hara|haar gya|hopeless|useless/.test(lower);
+  const isStudy = /jee|neet|exam|physics|chemistry|maths|math|biology|chapter|concept|numericals|syllabus|ncert|board/.test(lower);
+  const isHack = /shortcut|hack|tip|trick|productivity|skill|fast|quickly|kaise kare|jugaad/.test(lower);
+
+  if (isQuitting) return { primary_soul: 'DRILL_SERGEANT', emotion: 'DEMOTIVATED', tone: 'AGGRESSIVE', need: 'TOUGH_LOVE', urgency: 'HIGH' };
+  if (isStudy)   return { primary_soul: 'SCHOLAR',         emotion: 'ANXIOUS',     tone: 'STRUCTURED', need: 'KNOWLEDGE',   urgency: 'MEDIUM' };
+  if (isHack)    return { primary_soul: 'HACKER',          emotion: 'ENERGIZED',   tone: 'ENERGETIC',  need: 'QUICK_TIP',  urgency: 'LOW' };
+  return           { primary_soul: 'VISIONARY',        emotion: 'NEUTRAL',     tone: 'DIRECT',     need: 'STRATEGY',   urgency: 'MEDIUM' };
+}
+
 // ─── ORACLE Streaming Chat Route ─────────────────────────────────────────────
 oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) => {
   const { message, conversationHistory, studentContext } = c.req.valid('json');
@@ -176,7 +191,7 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
     try {
       const userLanguage = c.get('userLanguage') || 'Hinglish';
 
-      // Step 1: Run Oracle Classifier and OmniPipeline DB Fetch in PARALLEL (< 600ms TTFT)
+      // Step 1: Thread + DB ops (no AI calls yet)
       let currentThreadId = queryThreadId;
       if (!currentThreadId || currentThreadId === 'null') {
         const title = message.substring(0, 40) + '...';
@@ -187,10 +202,10 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       // Save user message
       await DbService.saveMessage(currentThreadId, userId, 'user', message);
 
-      const [analysis, activeMission] = await Promise.all([
-        classifyMessage(message),
-        DbService.getActiveMission(userId).catch((): any => null)
-      ]);
+      // Fast keyword-based soul selection — ZERO extra API calls
+      const analysis = pickSoulFromKeywords(message);
+      const activeMission = await DbService.getActiveMission(userId).catch((): any => null);
+
 
       // ── Intercept for Consistency Onboarding ─────────────────────────────────────
       if (activeMission && activeMission.consistencyScore === -1) {
@@ -321,51 +336,10 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         })
       });
 
-      // Step 2: Build OmniInput and run 16-Layer OmniPipeline (Fast Sync Math)
-      const omniInput: OmniPipelineInput = {
-        userId,
-        userLanguage,
-        userMessage: message,
-        conversationHistory: conversationHistory as any,
-        contextMatrix: state_context?.contextMatrix ?? null,
-        frictionProfile: state_context?.frictionProfile ?? null,
-        strategyState: state_context?.strategyState ?? null,
-        detectedEmotionalSignals: [],
-        detectedChaosEvents: [],
-        daysSinceLastActivity: (() => {
-          if (!state_context?.contextMatrix?.onboardingCompletedAt) return 0;
-          const onboarded = new Date(state_context.contextMatrix.onboardingCompletedAt);
-          return Math.floor(Math.abs(Date.now() - onboarded.getTime()) / (1000 * 60 * 60 * 24));
-        })(),
-        consecutiveCompletionCount: activeMission?.streakDays ?? 0,
-        consecutiveFailureCount: activeMission?.streakDays === 0 ? 1 : 0,
-        daysSinceLastMilestone: activeMission?.dayNumber ?? 0,
-        milestonesHitTotal: activeMission?.dayNumber ?? 0,
-        streakDays: activeMission?.streakDays ?? 0,
-        currentTasks: [],
-        recentMemories: [],
-      };
-
-      let omniDataBlock = "";
-      try {
-        const omniResult = await runOmniPipeline(omniInput);
-        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
-        omniDataBlock = `[16-LAYER REAL-TIME ENGINE COMPUTATION]
-- Computed Tone: ${JSON.stringify(toneVector)}
-- Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
-- Streak: ${userSnapshot.streakDays} days
-- Consistency: ${userSnapshot.consistencyScore}/100`;
-      } catch (err) {
-        console.error('[ORACLE] OmniPipeline failed, falling back', err);
-      }
-
-      // Step 3: Build the God-Level ORACLE system prompt
+      // Build the system prompt (no OmniPipeline await — removed from hot path)
       const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);
-      
-      // MASTER MERGE: Real-time 16-Layer Math + Oracle Mentor (No Identity Clash)
-      const masterSystemPrompt = omniDataBlock 
-        ? `${omniDataBlock}\n\n${oraclePrompt}`
-        : oraclePrompt;
+      const masterSystemPrompt = oraclePrompt;
+
 
       // Step 4: Stream the actual response via Gemini Pro
       const keys = (process.env.GEMINI_API_KEY || process.env.AI_PROVIDER_KEY || '').split(',').map((k: string) => k.trim()).filter(Boolean);
