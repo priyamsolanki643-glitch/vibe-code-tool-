@@ -142,7 +142,7 @@ async function classifyMessage(message: string): Promise<any> {
 
     const client = new GoogleGenAI({ apiKey: keys[0] });
     const resp = await client.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts: [{ text: buildClassifierPrompt(message) }] }],
       config: { maxOutputTokens: 300, temperature: 0.1 }
     });
@@ -401,7 +401,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         contents,
         config: {
           maxOutputTokens: 8192,
