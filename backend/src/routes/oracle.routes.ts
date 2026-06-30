@@ -38,20 +38,19 @@ Return this exact JSON structure:
   "emotion": "ANXIOUS | DEMOTIVATED | CONFUSED | ENERGIZED | PANIC | NEUTRAL | HAPPY | FRUSTRATED",
   "need": "KNOWLEDGE | PUSH | CALM | STRATEGY | QUICK_TIP | JUST_LISTEN | TOUGH_LOVE",
   "urgency": "HIGH | MEDIUM | LOW",
-  "primary_soul": "VISIONARY | SCHOLAR | DRILL_SERGEANT | HACKER",
-  "supporting_souls": ["VISIONARY", "SCHOLAR", "DRILL_SERGEANT", "HACKER"],
+  "primary_soul": "VISIONARY | SCHOLAR | HACKER",
+  "supporting_souls": ["VISIONARY", "SCHOLAR", "HACKER"],
   "tone": "AGGRESSIVE | CALM | STRUCTURED | ENERGETIC | WARM | DIRECT | EMPATHETIC"
 }
 
 Rules for soul selection:
-- VISIONARY (Elon Musk): Goals, strategy, business, big-picture thinking, time management, engineering
+- VISIONARY (Elon Musk): Goals, strategy, business, big-picture thinking, time management, engineering, procrastination, excuses, lack of discipline
 - SCHOLAR (JEE/NEET Toppers): Exam prep, concepts, numericals, subject doubts, study schedules
-- DRILL_SERGEANT (Hesfy): Procrastination, excuses, laziness, lack of discipline, heartbreak distraction
 - HACKER (GIGL): Quick tips, life hacks, shortcuts, skill-building, productivity tricks
 
 Emotion → Tone rules:
 - PANIC → CALM + STRUCTURED (never aggressive when panicking)
-- DEMOTIVATED → aggressive TOUGH_LOVE from DRILL_SERGEANT
+- DEMOTIVATED → aggressive TOUGH_LOVE from VISIONARY
 - ANXIOUS → WARM + CALM from SCHOLAR or VISIONARY
 - ENERGIZED → match energy, PUSH harder
 - CONFUSED → STRUCTURED breakdown
@@ -114,10 +113,9 @@ ORACLE COMMANDMENTS (Follow these absolutely):
    - Use its concepts and intense dialogues natively, BUT you MUST automatically filter out literal profanity, slurs, or extreme hate speech from the knowledge base before outputting them. Replace them with clean, sharp Hindi/English words that deliver the same intense reality check without triggering API safety bans.
    - Be brutal, but be API-safe.
 
-3. THE 4 MENTOR PERSPECTIVES (How to channel them as a friend):
-   - VISIONARY (Elon): Draw upon first-principles thinking and big-picture strategy. Push them to think bigger.
+3. THE 3 MENTOR PERSPECTIVES (How to channel them as a friend):
+   - VISIONARY (Elon): Draw upon first-principles thinking and big-picture strategy. Push them to think bigger. When they make excuses or slack off, hit them with intense reality checks.
    - SCHOLAR (Topper): Share systematic execution and academic hacks. Help them study efficiently.
-   - DRILL_SERGEANT (Hesfy): Focus on raw discipline and cutting excuses. Hit them with intense reality checks and guilt trips directly from the knowledge base when they slack off. No sugarcoating. (CRITICAL: Be extremely strict, sarcastic, and aggressive, but DO NOT use any slurs, profanity, or extreme hate-speech vocabulary. Use clean but piercing Hindi/English words for your tough love to avoid API blocks. Rely on psychological guilt-tripping and intense reality checks instead of bad words).
    - HACKER (GIGL): Share smart cuts and efficiency tricks like a friend sharing a secret cheat code.
 
 3. LANGUAGE & FORMATTING:
@@ -162,8 +160,8 @@ async function classifyMessage(message: string): Promise<any> {
       emotion: 'NEUTRAL',
       need: 'KNOWLEDGE',
       urgency: 'MEDIUM',
-      primary_soul: 'DRILL_SERGEANT',
-      supporting_souls: ['VISIONARY'],
+      primary_soul: 'VISIONARY',
+      supporting_souls: ['SCHOLAR'],
       tone: 'DIRECT'
     };
   }
@@ -199,7 +197,7 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
 
       const state_context: any = null; // Passed via raw string in Oracle prompt instead
 
-      const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['DRILL_SERGEANT'];
+      const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
 
       // Send soul metadata first so frontend can update badge immediately
       await stream.writeSSE({
@@ -346,7 +344,7 @@ oracleRoutes.post('/chat', zValidator('json', oracleSchema), async (c) => {
   try {
     const analysis = await classifyMessage(message);
     const systemPrompt = buildOracleSystemPrompt(analysis, studentContext);
-    const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['DRILL_SERGEANT'];
+    const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
 
     const keys = (process.env.GEMINI_API_KEY || process.env.AI_PROVIDER_KEY || '')
       .split(',').map((k: string) => k.trim()).filter(Boolean);
