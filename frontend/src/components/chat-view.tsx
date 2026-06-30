@@ -351,6 +351,22 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         } catch(e) {}
       }
 
+      let contextPayload = "Lumensky user";
+      try {
+        const diagStr = localStorage.getItem("diagnosticResult");
+        if (diagStr) {
+          const diag = JSON.parse(diagStr);
+          contextPayload = `[PSYCHOLOGICAL DIAGNOSTIC (16-Layer Profile)]\n` + 
+            `Goal: ${diag.declaredGoal || 'N/A'}\n` +
+            `Cognitive Endurance: ${diag.cognitiveEnduranceMinutes || 'N/A'} mins\n` +
+            `Risk Tolerance: ${diag.riskTolerance || 'N/A'}\n` +
+            `Baseline Discipline: ${diag.baselineDiscipline || 'N/A'}\n` +
+            `Friction Profile: ${JSON.stringify(diag.frictionProfile || {})}\n` +
+            `Capability Vector: ${JSON.stringify(diag.capabilityVector || {})}\n` +
+            `Context Matrix: ${JSON.stringify(diag.contextMatrix || {})}`;
+        }
+      } catch(e) {}
+
       const { data: { session } } = await supabase.auth.getSession();
       const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080").replace(/\/$/, "");
 
@@ -365,7 +381,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         body: JSON.stringify({
           message: payloadMessage,
           conversationHistory: historyPayload,
-          studentContext: "Lumensky user"
+          studentContext: contextPayload
         }),
       });
 
