@@ -390,7 +390,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-pro',
         contents,
         config: {
           maxOutputTokens: 8192,
@@ -438,9 +438,10 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       // but wait, it is declared inside the try block? Let's check.
       // Actually, we can just send a graceful text chunk instead of a fatal error event, 
       // so the frontend doesn't wipe the previously streamed chunks!
+      const errorStr = err?.message || err?.toString() || "Unknown API Error";
       await stream.writeSSE({ 
         data: JSON.stringify({ 
-          chunk: `\n\n[System Notification: Connection dropped by AI provider. Partial response recovered.]` 
+          chunk: `\n\n[System Notification: Connection dropped by AI provider. Partial response recovered. Error details: ${errorStr}]` 
         }) 
       });
       await stream.writeSSE({ event: 'done', data: '[DONE]' });
