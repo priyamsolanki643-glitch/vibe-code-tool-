@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Archive, LogOut, MoreVertical, Trash2, Atom, Target } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, Search, Archive, LogOut, MoreVertical, Trash2, Atom, Target, Clock } from "lucide-react";
 import { supabase } from "@/utils/supabase/client";
 import { SidebarHistorySkeleton } from "./ui/skeleton";
 
@@ -27,6 +28,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ onOpenVault, onSignOut, isOpen, setIsOpen, isAnonymous }: SidebarProps) {
+  const router = useRouter();
   const [activeItem, setActiveItem] = useState("trajectory");
   const [touchStart, setTouchStart] = useState(0);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -277,25 +279,50 @@ const { data: { session } } = await supabase.auth.getSession();
             {isOpen && <span className={`text-[10px] font-mono ${activeItem === "vault" ? "text-[#ffffff]/70" : "text-[#52525b]"}`}>2x tap</span>}
           </button>
 
+          {/* Chat History */}
+          {!isAnonymous && (
+            <button
+              onClick={() => {
+                setActiveItem("history");
+                router.push("/history");
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-[13px] transition-colors ${
+                activeItem === "history"
+                  ? "bg-[#ffffff]/10 text-[#ffffff]"
+                  : "text-[#a1a1aa] hover:bg-white/5 hover:text-[#ffffff]"
+              } ${!isOpen ? "justify-center" : ""}`}
+            >
+              <div className="flex items-center gap-3">
+                <Clock className="size-4 shrink-0" />
+                {isOpen && <span className="font-medium">Chat History</span>}
+              </div>
+            </button>
+          )}
+
         </div>
 
         {/* ── Scrollable History List ── */}
         <div className="flex-1 px-3 py-4 flex flex-col gap-4 overflow-y-auto no-scrollbar">
           {isOpen && (
             <>
-              {/* History List */}
+              {/* History List — only last 7 days */}
               {isLoadingHistory ? (
                 <SidebarHistorySkeleton />
               ) : (() => {
-                const filteredHistory = historyData.map(g => ({
-                  ...g,
-                  chats: g.chats.filter((c: ChatThread) => c?.title?.toLowerCase().includes(searchQuery.toLowerCase()))
-                })).filter(g => g.chats.length > 0);
+                // Only show Today, Yesterday, Previous 7 Days — NOT "Older"
+                const RECENT_GROUPS = ["Today", "Yesterday", "Previous 7 Days"];
+                const filteredHistory = historyData
+                  .filter(g => RECENT_GROUPS.includes(g.group))
+                  .map(g => ({
+                    ...g,
+                    chats: g.chats.filter((c: ChatThread) => c?.title?.toLowerCase().includes(searchQuery.toLowerCase()))
+                  })).filter(g => g.chats.length > 0);
 
                 if (filteredHistory.length === 0) {
                   return (
                     <div className="px-3 py-4 text-center text-[#666666] text-[13px]">
-                      No chats found.
+                      No recent chats.
                     </div>
                   );
                 }
