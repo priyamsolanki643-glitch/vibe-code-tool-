@@ -68,7 +68,7 @@ function buildOracleSystemPrompt(
   const primaryBrain = getBrainForSoul(analysis.primary_soul as SoulId);
 
   // Load supporting brains (max 1 additional to keep context tight)
-  const supportingSoul = (analysis.supporting_souls as SoulId[])
+  const supportingSoul = ((analysis.supporting_souls as SoulId[]) || [])
     .filter(s => s !== analysis.primary_soul)[0];
   const supportingBrain = supportingSoul ? getBrainForSoul(supportingSoul) : '';
 
