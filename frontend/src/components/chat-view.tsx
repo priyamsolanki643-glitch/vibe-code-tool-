@@ -460,6 +460,11 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                 try {
                   const eventData = JSON.parse(dataStr);
                   if (eventData.soul) {
+                    if (eventData.thread_id && !threadId) {
+                      setThreadId(eventData.thread_id);
+                      window.dispatchEvent(new Event('refresh-sidebar'));
+                      window.history.pushState({}, '', `?t=${eventData.thread_id}`);
+                    }
                     const newSoul = {
                       name: eventData.soulName,
                       emoji: eventData.emoji,

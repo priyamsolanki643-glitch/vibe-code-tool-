@@ -173,6 +173,7 @@ async function classifyMessage(message: string): Promise<any> {
 oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) => {
   const { message, conversationHistory, studentContext } = c.req.valid('json');
   const userId = c.get('userId');
+  const queryThreadId = c.req.query('thread_id');
 
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
@@ -181,6 +182,16 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       const userLanguage = c.get('userLanguage') || 'Hinglish';
 
       // Step 1: Run Oracle Classifier and OmniPipeline DB Fetch in PARALLEL (< 600ms TTFT)
+      let currentThreadId = queryThreadId;
+      if (!currentThreadId || currentThreadId === 'null') {
+        const title = message.substring(0, 40) + '...';
+        const thread = await DbService.createChatThread(userId, title);
+        currentThreadId = thread.id;
+      }
+
+      // Save user message
+      await DbService.saveMessage(currentThreadId, userId, 'user', message);
+
       const [analysis, activeMission] = await Promise.all([
         classifyMessage(message),
         DbService.getActiveMission(userId).catch((): any => null)
@@ -199,7 +210,8 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
           emoji: primaryMeta.emoji,
           color: primaryMeta.color,
           emotion: analysis.emotion,
-          tone: analysis.tone
+          tone: analysis.tone,
+          thread_id: currentThreadId
         })
       });
 
@@ -287,9 +299,11 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       });
 
       // Stream token by token
+      let fullAiResponse = "";
       for await (const chunk of responseStream) {
         const text = chunk.text;
         if (text) {
+          fullAiResponse += text;
           await stream.writeSSE({ data: JSON.stringify({ chunk: text }) });
         }
         
@@ -302,6 +316,11 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
             }) 
           });
         }
+      }
+      
+      // Save AI message to DB
+      if (currentThreadId) {
+        await DbService.saveMessage(currentThreadId, userId, 'fp', fullAiResponse);
       }
 
       // Signal completion
