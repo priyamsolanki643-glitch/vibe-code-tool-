@@ -229,10 +229,15 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         recentMemories: [],
       };
 
-      let omniSystemPrompt = "";
+      let omniDataBlock = "";
       try {
         const omniResult = await runOmniPipeline(omniInput);
-        omniSystemPrompt = omniResult.geminiSystemPrompt;
+        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
+        omniDataBlock = `[16-LAYER REAL-TIME ENGINE COMPUTATION]
+- Computed Tone: ${JSON.stringify(toneVector)}
+- Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
+- Streak: ${userSnapshot.streakDays} days
+- Consistency: ${userSnapshot.consistencyScore}/100`;
       } catch (err) {
         console.error('[ORACLE] OmniPipeline failed, falling back', err);
       }
@@ -240,9 +245,9 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       // Step 3: Build the God-Level ORACLE system prompt
       const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);
       
-      // MASTER MERGE: 16-Layer + Oracle Mentor
-      const masterSystemPrompt = omniSystemPrompt 
-        ? `[16-LAYER OMNI ENGINE COMPUTATION]\n${omniSystemPrompt}\n\n[ORACLE MENTOR DIRECTIVE]\n${oraclePrompt}`
+      // MASTER MERGE: Real-time 16-Layer Math + Oracle Mentor (No Identity Clash)
+      const masterSystemPrompt = omniDataBlock 
+        ? `${omniDataBlock}\n\n${oraclePrompt}`
         : oraclePrompt;
 
       // Step 4: Stream the actual response via Gemini Pro
