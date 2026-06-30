@@ -292,6 +292,16 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         if (text) {
           await stream.writeSSE({ data: JSON.stringify({ chunk: text }) });
         }
+        
+        const finishReason = chunk.candidates?.[0]?.finishReason;
+        if (finishReason && finishReason !== 'STOP') {
+          console.warn('[ORACLE] Stream ended prematurely. Reason:', finishReason);
+          await stream.writeSSE({ 
+            data: JSON.stringify({ 
+              chunk: `\n\n[System Notification: AI Stream halted. Reason: ${finishReason}. Note: Hesfy's extreme vocabulary may have triggered Google's strict AI filters despite bypass attempts.]` 
+            }) 
+          });
+        }
       }
 
       // Signal completion
