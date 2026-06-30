@@ -220,7 +220,7 @@ User message: "${message}"`;
           await DbService.addConsistencyLog(userId, extractedScore);
           
           // Inform Oracle of this new context implicitly via conversation history
-          const systemLogMessage = { role: 'user', parts: [{ text: `[SYSTEM LOG: User self-assessed initial consistency score as ${extractedScore}/100]` }] };
+          const systemLogMessage = { role: 'user' as const, parts: [{ text: `[SYSTEM LOG: User self-assessed initial consistency score as ${extractedScore}/100]` }] };
           if (Array.isArray(conversationHistory)) {
              conversationHistory.push(systemLogMessage);
           } else {
@@ -393,13 +393,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         contents,
         config: {
           maxOutputTokens: 8192,
-          temperature: 0.85,
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
-          ]
+          temperature: 0.85
         }
       });
 
