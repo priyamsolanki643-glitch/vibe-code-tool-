@@ -272,11 +272,17 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents,
         config: {
           maxOutputTokens: 1024,
           temperature: 0.85,
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+          ]
         }
       });
 

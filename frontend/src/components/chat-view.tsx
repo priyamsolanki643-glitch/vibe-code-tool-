@@ -435,7 +435,15 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
             
             for (const line of lines) {
               if (line.startsWith("event: done")) { done = true; break; }
-              if (line.startsWith("event: error")) continue;
+              if (line.startsWith("event: error")) {
+                const errDataStr = lines[lines.indexOf(line) + 1]?.slice(6);
+                let errMsg = "Stream error occurred.";
+                try { errMsg = JSON.parse(errDataStr || "{}").message || errMsg; } catch(e) {}
+                accumulatedReply += `\n\n[System Notification: ${errMsg}]`;
+                setMessages((prev) => prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m));
+                done = true;
+                break;
+              }
 
               if (line.startsWith("event: soul")) {
                 // Next line should be data with soul metadata
