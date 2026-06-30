@@ -167,16 +167,16 @@ async function classifyMessage(message: string): Promise<any> {
 }
 
 // ─── Fast keyword-based soul picker (no AI call, 0ms) ─────────────────────────
-function pickSoulFromKeywords(message: string): { primary_soul: SoulId; emotion: string; tone: string; need: string; urgency: string } {
+function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporting_souls: SoulId[]; emotion: string; tone: string; need: string; urgency: string } {
   const lower = message.toLowerCase();
   const isQuitting = /quit|give up|nahi hoga|nhi hoga|bas karo|chhod|chod|rona|cry|can't do|cant do|mujhse nhi|mujhse nahi|haar|hara|haar gya|hopeless|useless/.test(lower);
   const isStudy = /jee|neet|exam|physics|chemistry|maths|math|biology|chapter|concept|numericals|syllabus|ncert|board/.test(lower);
   const isHack = /shortcut|hack|tip|trick|productivity|skill|fast|quickly|kaise kare|jugaad/.test(lower);
 
-  if (isQuitting) return { primary_soul: 'DRILL_SERGEANT', emotion: 'DEMOTIVATED', tone: 'AGGRESSIVE', need: 'TOUGH_LOVE', urgency: 'HIGH' };
-  if (isStudy)   return { primary_soul: 'SCHOLAR',         emotion: 'ANXIOUS',     tone: 'STRUCTURED', need: 'KNOWLEDGE',   urgency: 'MEDIUM' };
-  if (isHack)    return { primary_soul: 'HACKER',          emotion: 'ENERGIZED',   tone: 'ENERGETIC',  need: 'QUICK_TIP',  urgency: 'LOW' };
-  return           { primary_soul: 'VISIONARY',        emotion: 'NEUTRAL',     tone: 'DIRECT',     need: 'STRATEGY',   urgency: 'MEDIUM' };
+  if (isQuitting) return { primary_soul: 'DRILL_SERGEANT', supporting_souls: ['VISIONARY'],  emotion: 'DEMOTIVATED', tone: 'AGGRESSIVE',  need: 'TOUGH_LOVE', urgency: 'HIGH' };
+  if (isStudy)   return { primary_soul: 'SCHOLAR',         supporting_souls: ['VISIONARY'],  emotion: 'ANXIOUS',     tone: 'STRUCTURED', need: 'KNOWLEDGE',  urgency: 'MEDIUM' };
+  if (isHack)    return { primary_soul: 'HACKER',          supporting_souls: ['VISIONARY'],  emotion: 'ENERGIZED',   tone: 'ENERGETIC',  need: 'QUICK_TIP',  urgency: 'LOW' };
+  return           { primary_soul: 'VISIONARY',        supporting_souls: ['HACKER'],     emotion: 'NEUTRAL',     tone: 'DIRECT',     need: 'STRATEGY',   urgency: 'MEDIUM' };
 }
 
 // ─── ORACLE Streaming Chat Route ─────────────────────────────────────────────
