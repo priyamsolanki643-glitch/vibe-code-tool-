@@ -181,7 +181,7 @@ export default function EntryPoint() {
   }
 
   return (
-    <div className="h-screen w-screen flex bg-black overflow-hidden relative animate-app-in">
+    <div className="h-screen w-screen flex bg-black overflow-hidden relative animate-app-in" style={{ height: '100dvh', width: '100dvw' }}>
       <style>{`
         @keyframes app-in {
           0% { transform: scale(1.05) translate3d(0, 30px, 0); opacity: 0; }

@@ -17,6 +17,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
+  // Prevents browser UI from resizing the visual viewport (fixes 100vh issue)
+  interactiveWidget: "resizes-content",
 };
 
 export const metadata: Metadata = {
@@ -66,6 +69,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground min-h-screen overflow-x-hidden`}
         suppressHydrationWarning
+        style={{ minHeight: '100dvh' }}
       >
         {children}
       </body>

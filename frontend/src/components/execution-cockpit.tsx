@@ -371,7 +371,7 @@ const handleRecalibrate = () => {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center font-mono text-cyan-400">
+      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center font-mono text-cyan-400" style={{ height: '100dvh' }}>
         <RefreshCw className="size-8 animate-spin mb-4" />
         <span>BOOTING TACTICAL COCKPIT PROTOCOL...</span>
       </div>
@@ -380,7 +380,7 @@ const handleRecalibrate = () => {
 
   if (!mission) {
     return (
-      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center font-mono text-[#a1a1aa] p-6 text-center">
+      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center font-mono text-[#a1a1aa] p-6 text-center" style={{ height: '100dvh' }}>
         <AlertTriangle className="size-10 text-amber-500 mb-4" />
         <h2 className="text-xl font-bold text-white mb-2">NO ACTIVE LOCKED TRAJECTORY</h2>
         <p className="max-w-md text-sm mb-6 leading-relaxed">
@@ -403,7 +403,7 @@ const handleRecalibrate = () => {
   const consistencyProgressColor = displayScore >= 75 ? "#ffffff" : displayScore >= 50 ? "#f59e0b" : "#ef4444";
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-screen bg-[#000000] text-white font-sans overflow-hidden relative">
+    <div className="flex-1 flex flex-col lg:flex-row h-screen bg-[#000000] text-white font-sans overflow-hidden relative" style={{ height: '100dvh' }}>
       
       {/* Background glowing gradients */}
       <div className="pointer-events-none absolute top-10 left-10 w-[400px] h-[400px] rounded-full bg-indigo-950/10 blur-[120px] z-0" />

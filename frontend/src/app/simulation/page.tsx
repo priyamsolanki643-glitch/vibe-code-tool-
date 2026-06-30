@@ -85,7 +85,7 @@ const { data: { session } } = await supabase.auth.getSession();
   const progressPercent = Math.min((activeStep / SIMULATION_STEPS.length) * 100, 100);
 
   return (
-    <main className="flex h-screen w-full items-center justify-center bg-black p-4 md:p-8 relative overflow-hidden font-mono text-white">
+    <main className="flex h-screen w-full items-center justify-center bg-black p-4 md:p-8 relative overflow-hidden font-mono text-white" style={{ height: '100dvh' }}>
       {/* Background orbs */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-cyan-950/10 blur-[130px] mix-blend-screen" />
 

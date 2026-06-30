@@ -554,7 +554,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
   const isInitial = messages.length === 0 && !isLoadingThread;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 relative h-screen bg-[#000000] text-white font-sans overflow-hidden">
+    <div className="flex-1 flex flex-col min-w-0 relative h-screen bg-[#000000] text-white font-sans overflow-hidden" style={{ height: '100dvh' }}>
       
       <svg width="0" height="0" className="absolute pointer-events-none">
         <filter id="liquid-spill">

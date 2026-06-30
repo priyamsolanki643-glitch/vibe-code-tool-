@@ -171,6 +171,7 @@ const { data: { session } } = await supabase.auth.getSession();
         className={`fixed lg:relative inset-y-0 left-0 z-50 flex flex-col shrink-0 h-screen transition-all duration-300 bg-black/40 backdrop-blur-2xl lg:bg-transparent lg:backdrop-blur-none overflow-hidden ${
           isOpen ? "w-[260px] translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0"
         }`}
+        style={{ height: '100dvh' }}
       >
         <style>{`
           .no-scrollbar::-webkit-scrollbar { display: none; }

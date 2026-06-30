@@ -133,7 +133,19 @@
 ───────────────────────────────────────────── */
 @layer base {
   * { border-color: var(--border); }
-  html { color-scheme: dark; }
+
+  /* ── Mobile Viewport Fix ──────────────────────
+     100vh on mobile includes browser UI chrome (address bar).
+     100dvh (dynamic viewport height) excludes it so content
+     always fits perfectly without scrolling.
+  ─────────────────────────────────────────────── */
+  html {
+    color-scheme: dark;
+    height: 100%;
+    /* Fallback for old iOS that doesn't support dvh */
+    height: -webkit-fill-available;
+  }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -141,6 +153,8 @@
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
     text-rendering: optimizeLegibility;
+    min-height: 100%;
+    min-height: 100dvh;
   }
   ::selection {
     background: hsla(243,80%,65%,0.22);
@@ -153,6 +167,29 @@
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+}
+
+/* ── DVH Utility Classes ──────────────────────────────────────────────────────
+   Use these instead of h-screen / min-h-screen on mobile-facing layouts.
+   h-dvh    = height: 100dvh
+   min-h-dvh = min-height: 100dvh
+───────────────────────────────────────────────────────────────────────────── */
+.h-dvh {
+  height: 100vh;         /* fallback for old browsers */
+  height: 100dvh;
+}
+.min-h-dvh {
+  min-height: 100vh;     /* fallback */
+  min-height: 100dvh;
+}
+/* Override Tailwind's h-screen to use dvh */
+.h-screen {
+  height: 100vh;
+  height: 100dvh;
+}
+.min-h-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ─────────────────────────────────────────────
@@ -189,6 +226,7 @@
 ───────────────────────────────────────────── */
 .lp-root {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #000;
   display: flex;
   flex-direction: column;

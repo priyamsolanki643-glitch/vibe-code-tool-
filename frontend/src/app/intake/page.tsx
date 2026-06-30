@@ -174,7 +174,7 @@ const { data: { session } } = await supabase.auth.getSession();
   };
 
   return (
-    <div className="flex h-screen w-full bg-black overflow-hidden relative font-sans text-white">
+    <div className="flex h-screen w-full bg-black overflow-hidden relative font-sans text-white" style={{ height: '100dvh' }}>
       {/* Aurora Orbs */}
       <div className="pointer-events-none absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-indigo-900/10 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: "8s" }} />
       <div className="pointer-events-none absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-purple-900/10 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDuration: "12s" }} />
