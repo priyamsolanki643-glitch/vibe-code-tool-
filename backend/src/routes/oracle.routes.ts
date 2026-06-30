@@ -8,6 +8,8 @@ import {
   getElonBrain, getHesfyBrain, getTopperBrain, getGiglBrain,
   getBrainForSoul, SOUL_METADATA, type SoulId
 } from '../mentors/brain-loader';
+import { DbService } from '../services/db.service';
+import { runOmniPipeline, OmniPipelineInput } from '../engine/OmniPipeline';
 
 export const oracleRoutes = new Hono<{ Variables: { userId: string; userLanguage: string } }>();
 
@@ -177,8 +179,15 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
 
   return streamSSE(c, async (stream) => {
     try {
-      // Step 1: Classify the message (fast, cheap Gemini Flash)
-      const analysis = await classifyMessage(message);
+      const userLanguage = c.get('userLanguage') || 'Hinglish';
+
+      // Step 1: Run Oracle Classifier and OmniPipeline DB Fetch in PARALLEL (< 600ms TTFT)
+      const [analysis, activeMission] = await Promise.all([
+        classifyMessage(message),
+        DbService.getActiveMission(userId).catch((): any => null)
+      ]);
+
+      const state_context: any = null; // Passed via raw string in Oracle prompt instead
 
       const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['DRILL_SERGEANT'];
 
@@ -195,36 +204,59 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         })
       });
 
-      // Step 2: Build the God-Level ORACLE system prompt
-      const systemPrompt = buildOracleSystemPrompt(analysis, studentContext);
+      // Step 2: Build OmniInput and run 16-Layer OmniPipeline (Fast Sync Math)
+      const omniInput: OmniPipelineInput = {
+        userId,
+        userLanguage,
+        userMessage: message,
+        conversationHistory: conversationHistory as any,
+        contextMatrix: state_context?.contextMatrix ?? null,
+        frictionProfile: state_context?.frictionProfile ?? null,
+        strategyState: state_context?.strategyState ?? null,
+        detectedEmotionalSignals: [],
+        detectedChaosEvents: [],
+        daysSinceLastActivity: (() => {
+          if (!state_context?.contextMatrix?.onboardingCompletedAt) return 0;
+          const onboarded = new Date(state_context.contextMatrix.onboardingCompletedAt);
+          return Math.floor(Math.abs(Date.now() - onboarded.getTime()) / (1000 * 60 * 60 * 24));
+        })(),
+        consecutiveCompletionCount: activeMission?.streakDays ?? 0,
+        consecutiveFailureCount: activeMission?.streakDays === 0 ? 1 : 0,
+        daysSinceLastMilestone: activeMission?.dayNumber ?? 0,
+        milestonesHitTotal: activeMission?.dayNumber ?? 0,
+        streakDays: activeMission?.streakDays ?? 0,
+        currentTasks: [],
+        recentMemories: [],
+      };
 
-      // Step 3: Stream the actual response via Gemini Pro
-      const keys = (process.env.GEMINI_API_KEY || process.env.AI_PROVIDER_KEY || '')
-        .split(',').map((k: string) => k.trim()).filter(Boolean);
+      let omniSystemPrompt = "";
+      try {
+        const omniResult = await runOmniPipeline(omniInput);
+        omniSystemPrompt = omniResult.geminiSystemPrompt;
+      } catch (err) {
+        console.error('[ORACLE] OmniPipeline failed, falling back', err);
+      }
 
+      // Step 3: Build the God-Level ORACLE system prompt
+      const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);
+      
+      // MASTER MERGE: 16-Layer + Oracle Mentor
+      const masterSystemPrompt = omniSystemPrompt 
+        ? `[16-LAYER OMNI ENGINE COMPUTATION]\n${omniSystemPrompt}\n\n[ORACLE MENTOR DIRECTIVE]\n${oraclePrompt}`
+        : oraclePrompt;
+
+      // Step 4: Stream the actual response via Gemini Pro
+      const keys = (process.env.GEMINI_API_KEY || process.env.AI_PROVIDER_KEY || '').split(',').map((k: string) => k.trim()).filter(Boolean);
       if (!keys.length) throw new Error('No Gemini API key found');
 
       const { GoogleGenAI } = await import('@google/genai');
       const client = new GoogleGenAI({ apiKey: keys[0] });
 
-      // Build conversation history with system prompt prepended
       const contents = [
-        // Inject system as first user turn (Gemini pattern)
-        {
-          role: 'user' as const,
-          parts: [{ text: `[ORACLE INITIALIZATION]\n${systemPrompt}` }]
-        },
-        {
-          role: 'model' as const,
-          parts: [{ text: 'Understood. I am ORACLE. Ready.' }]
-        },
-        // Add conversation history
+        { role: 'user' as const, parts: [{ text: `[SYSTEM INITIALIZATION]\n${masterSystemPrompt}` }] },
+        { role: 'model' as const, parts: [{ text: 'Understood. I am ORACLE infused with the 16-layer OmniEngine. Ready.' }] },
         ...(conversationHistory || []),
-        // Current message
-        {
-          role: 'user' as const,
-          parts: [{ text: message }]
-        }
+        { role: 'user' as const, parts: [{ text: message }] }
       ];
 
       const responseStream = await client.models.generateContentStream({
