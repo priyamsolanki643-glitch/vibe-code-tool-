@@ -418,10 +418,10 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         let newMsgId = String(Date.now());
         let streamBuffer = "";
         
-        // Push an empty message first
+        // Push an empty message first — but keep isThinking=true until first chunk arrives
         setMessages((prev) => [...prev, { id: newMsgId, role: "fp", text: "", createdAt: new Date().toISOString() }]);
-        setIsThinking(false);
         setIsStreaming(true);
+        let firstChunkReceived = false;
 
         while (!done) {
           const { value, done: doneReading } = await reader.read();
@@ -465,6 +465,10 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                     continue;
                   } else if (eventData.chunk !== undefined) {
                     accumulatedReply += eventData.chunk;
+                    if (!firstChunkReceived) {
+                      firstChunkReceived = true;
+                      setIsThinking(false);
+                    }
                     setMessages((prev) => 
                       prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m)
                     );
@@ -474,6 +478,10 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                   // Legacy fallback: If it's not JSON, it's raw text chunk from Oracle!
                   if (dataStr) {
                     accumulatedReply += dataStr;
+                    if (!firstChunkReceived) {
+                      firstChunkReceived = true;
+                      setIsThinking(false);
+                    }
                     setMessages((prev) => 
                       prev.map((m) => m.id === newMsgId ? { ...m, text: accumulatedReply } : m)
                     );
