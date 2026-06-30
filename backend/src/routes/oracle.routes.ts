@@ -336,9 +336,46 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         })
       });
 
-      // Build the system prompt (no OmniPipeline await — removed from hot path)
+      // Step 2: Run 16-Layer OmniPipeline (pure TypeScript math — NO AI call, ~5ms)
+      const omniInput: OmniPipelineInput = {
+        userId,
+        userLanguage,
+        userMessage: message,
+        conversationHistory: conversationHistory as any,
+        contextMatrix: null,
+        frictionProfile: null,
+        strategyState: null,
+        detectedEmotionalSignals: [],
+        detectedChaosEvents: [],
+        daysSinceLastActivity: 0,
+        consecutiveCompletionCount: activeMission?.streakDays ?? 0,
+        consecutiveFailureCount: activeMission?.streakDays === 0 ? 1 : 0,
+        daysSinceLastMilestone: activeMission?.dayNumber ?? 0,
+        milestonesHitTotal: activeMission?.dayNumber ?? 0,
+        streakDays: activeMission?.streakDays ?? 0,
+        currentTasks: [],
+        recentMemories: [],
+      };
+
+      let omniDataBlock = "";
+      try {
+        const omniResult = await runOmniPipeline(omniInput);
+        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
+        omniDataBlock = `[16-LAYER REAL-TIME ENGINE OUTPUT]
+- Tone Directive: ${JSON.stringify(toneVector)}
+- Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
+- Student Streak: ${userSnapshot.streakDays} days
+- Consistency Score: ${userSnapshot.consistencyScore}/100
+- Active Path: ${userSnapshot.activePath}`;
+      } catch (err) {
+        console.error('[ORACLE] OmniPipeline failed, skipping:', err);
+      }
+
+      // Step 3: Build Oracle system prompt and merge with 16-layer output
       const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);
-      const masterSystemPrompt = oraclePrompt;
+      const masterSystemPrompt = omniDataBlock
+        ? `${omniDataBlock}\n\n${oraclePrompt}`
+        : oraclePrompt;
 
 
       // Step 4: Stream the actual response via Gemini Pro
