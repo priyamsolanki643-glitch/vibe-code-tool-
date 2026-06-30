@@ -403,14 +403,14 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         }
       });
 
-      // Stream token by token
+      // Accumulate the full response to prevent Serverless SSE connection drops
       let fullAiResponse = "";
       for await (const chunk of responseStream) {
         const text = chunk.text;
         if (text) {
           fullAiResponse += text;
-          await stream.writeSSE({ data: JSON.stringify({ chunk: text }) });
         }
+
         
         const finishReason = chunk.candidates?.[0]?.finishReason;
         if (finishReason && finishReason !== 'STOP') {
@@ -423,6 +423,11 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         }
       }
       
+      // Send the entire response in one go to ensure 100% delivery
+      if (fullAiResponse) {
+        await stream.writeSSE({ data: JSON.stringify({ chunk: fullAiResponse }) });
+      }
+
       // Save AI message to DB
       if (currentThreadId) {
         await DbService.saveMessage(currentThreadId, userId, 'fp', fullAiResponse);
