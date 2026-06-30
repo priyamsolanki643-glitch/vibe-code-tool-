@@ -17,16 +17,24 @@ interface Message {
   id: string;
   role: "user" | "fp";
   text: string;
+  soul?: string;
+  soulEmoji?: string;
+  soulColor?: string;
   files?: { name: string; url: string; type: string }[];
   createdAt?: string;
 }
 
-
+// Utility for soul colors
+function hexToRgb(hex: string) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+}
 
 export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAuth }: ChatViewProps) {
   const router = useRouter();
   const [simulationData, setSimulationData] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [activeSoul, setActiveSoul] = useState<{name: string, emoji: string, color: string} | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -410,9 +418,13 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
             streamBuffer = lines.pop() || "";
             
             for (const line of lines) {
-              if (line.startsWith("event: soul")) continue;
               if (line.startsWith("event: done")) { done = true; break; }
               if (line.startsWith("event: error")) continue;
+
+              if (line.startsWith("event: soul")) {
+                // Next line should be data with soul metadata
+                continue;
+              }
 
               if (line.startsWith("data: ")) {
                 const dataStr = line.slice(6);
@@ -424,7 +436,16 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                 try {
                   const eventData = JSON.parse(dataStr);
                   if (eventData.soul) {
-                    // Soul badge metadata - we can add it to state if we want to show it in ChatView later
+                    const newSoul = {
+                      name: eventData.soulName,
+                      emoji: eventData.emoji,
+                      color: eventData.color
+                    };
+                    setActiveSoul(newSoul);
+                    // Add soul to the current streaming message
+                    setMessages((prev) => 
+                      prev.map((m) => m.id === newMsgId ? { ...m, soul: newSoul.name, soulEmoji: newSoul.emoji, soulColor: newSoul.color } : m)
+                    );
                     continue;
                   }
                 } catch (e) {
@@ -638,6 +659,22 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
 
         {/* Header Actions */}
         <div className="flex items-center gap-1 md:gap-2 -mr-1 pointer-events-auto">
+          {activeSoul && (
+            <div 
+              className="mr-3 flex items-center gap-2 px-3 py-1.5 rounded-full border bg-black/40 backdrop-blur-md animate-fade-in-up"
+              style={{ borderColor: `rgba(var(--soul-rgb-header, 255,255,255), 0.2)` }}
+            >
+              <style>{`
+                .header-soul-indicator {
+                  --soul-rgb-header: ${hexToRgb(activeSoul.color)};
+                }
+              `}</style>
+              <div className="size-2 rounded-full animate-pulse" style={{ background: activeSoul.color }} />
+              <span className="text-xs font-semibold tracking-wider uppercase text-white/90">
+                {activeSoul.emoji} {activeSoul.name}
+              </span>
+            </div>
+          )}
           <button 
             onClick={onOpenVault}
             className="p-2 text-[#ffffff]/60 hover:text-[#ffffff] active:scale-90 transition-all cursor-pointer flex items-center gap-2"
@@ -821,12 +858,21 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                           </div>
                         </div>
                       )) : (
-                        /* Lumensky message: Bubbleless raw text */
+                        /* Lumensky/ORACLE message: Bubbleless raw text */
                         <div 
-                          className="relative flex-1 space-y-4 select-text min-w-0 max-w-full group cursor-pointer md:cursor-auto"
+                          className="relative flex-1 space-y-3 select-text min-w-0 max-w-full group cursor-pointer md:cursor-auto"
                           onClick={(e) => handleMessageClick(e, m.id)}
                         >
-                          <div className="font-sans prose prose-invert prose-p:leading-[1.9] prose-p:text-[15.5px] prose-p:mb-5 prose-p:text-white/85 prose-p:font-[300] prose-p:tracking-[0.02em] prose-li:my-1 prose-ul:my-3 prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-wide text-[16px] max-w-3xl break-words">
+                          {m.soul && (
+                            <div 
+                              className="oracle-msg-soul-pill animate-fade-in-up"
+                              style={{ '--soul': m.soulColor, '--soul-rgb': hexToRgb(m.soulColor || '#ffffff') } as React.CSSProperties}
+                            >
+                              <span className="animate-pulse size-1.5 rounded-full" style={{ backgroundColor: 'var(--soul)' }} />
+                              {m.soulEmoji} {m.soul}
+                            </div>
+                          )}
+                          <div className="font-sans prose prose-invert oracle-prose prose-p:leading-[2.0] prose-p:text-[15.5px] prose-p:mb-5 prose-p:text-white/90 prose-p:font-[300] prose-p:tracking-[0.02em] prose-li:my-2 prose-ul:my-4 prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-wide text-[16px] max-w-3xl break-words">
                             <ReactMarkdown>
                               {m.text}
                             </ReactMarkdown>
