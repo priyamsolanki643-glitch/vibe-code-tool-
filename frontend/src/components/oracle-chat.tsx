@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { supabase } from '@/utils/supabase/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Message {
@@ -138,12 +139,14 @@ function MessageBubble({ msg }: { msg: Message }) {
 
 // ─── Main ORACLE Chat Component ───────────────────────────────────────────────
 interface OracleChatProps {
-  token: string;
+  token?: string;
   studentContext?: string;
   className?: string;
+  onOpenSidebar?: () => void;
+  onOpenVault?: () => void;
 }
 
-export function OracleChat({ token, studentContext = '', className = '' }: OracleChatProps) {
+export function OracleChat({ token: initialToken, studentContext = '', className = '', onOpenSidebar, onOpenVault }: OracleChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'model', text: WELCOME_MESSAGE, soul: SOUL_DEFAULTS },
   ]);
@@ -194,7 +197,13 @@ export function OracleChat({ token, studentContext = '', className = '' }: Oracl
     let currentSoul = activeSoul;
 
     try {
-      const gen = streamOracle(text, history, token, studentContext);
+      let activeToken = initialToken;
+      if (!activeToken) {
+        const { data: { session } } = await supabase.auth.getSession();
+        activeToken = session?.access_token || '';
+      }
+
+      const gen = streamOracle(text, history, activeToken, studentContext);
 
       for await (const chunk of gen) {
         if (abortRef.current) break;
@@ -255,13 +264,25 @@ export function OracleChat({ token, studentContext = '', className = '' }: Oracl
       {/* Header */}
       <div className="oracle-header">
         <div className="oracle-header-left">
+          {onOpenSidebar && (
+            <button onClick={onOpenSidebar} className="p-1 hover:bg-white/10 rounded mr-2" style={{ color: 'white' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+          )}
           <span className="oracle-logo">🧠</span>
           <div>
             <div className="oracle-title">ORACLE</div>
             <div className="oracle-subtitle">Your Personal AI Mentor</div>
           </div>
         </div>
-        <SoulBadge soul={activeSoul} animate={soulAnimate} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <SoulBadge soul={activeSoul} animate={soulAnimate} />
+          {onOpenVault && (
+            <button onClick={onOpenVault} className="p-1 hover:bg-white/10 rounded ml-2" style={{ color: 'white' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
