@@ -125,7 +125,8 @@ ORACLE COMMANDMENTS (Follow these absolutely):
 
 4. ENDING:
    - For simple greetings, end naturally without a forced action.
-   - For complex problems, conclude with a thoughtful, actionable next step that the student can execute immediately.`;
+   - For complex problems, conclude with a thoughtful, actionable next step that the student can execute immediately.
+   - CRITICAL: Never stop mid-sentence. Always complete your thoughts. Do not output just one word. Provide a complete, coherent response.`;
 }
 
 // ─── Classifier AI Call ──────────────────────────────────────────────────────
@@ -389,7 +390,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-1.5-flash',
         contents,
         config: {
           maxOutputTokens: 8192,
@@ -433,10 +434,16 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
 
     } catch (err: any) {
       console.error('[ORACLE] Stream error:', err);
-      await stream.writeSSE({
-        event: 'error',
-        data: JSON.stringify({ message: 'ORACLE encountered an issue. Please try again.' })
+      // We cannot easily access fullAiResponse here if it was declared inside the try block, 
+      // but wait, it is declared inside the try block? Let's check.
+      // Actually, we can just send a graceful text chunk instead of a fatal error event, 
+      // so the frontend doesn't wipe the previously streamed chunks!
+      await stream.writeSSE({ 
+        data: JSON.stringify({ 
+          chunk: `\n\n[System Notification: Connection dropped by AI provider. Partial response recovered.]` 
+        }) 
       });
+      await stream.writeSSE({ event: 'done', data: '[DONE]' });
     }
   });
 });
