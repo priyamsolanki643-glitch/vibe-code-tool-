@@ -287,7 +287,7 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         model: 'gemini-2.0-flash',
         contents,
         config: {
-          maxOutputTokens: 1024,
+          maxOutputTokens: 8192,
           temperature: 0.85,
           safetySettings: [
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
