@@ -106,6 +106,10 @@ export function buildUserContextBlock(runtime: Partial<UserRuntime>): string {
 
   parts.push('## CURRENT USER RUNTIME CONTEXT');
   parts.push('(This is the constraint matrix for the user you are currently talking to.)');
+  
+  const now = new Date();
+  parts.push(`**CURRENT SYSTEM TIME:** ${now.toISOString()} (${now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} IST)`);
+  parts.push(`(CRITICAL: Use this current date/time to judge time gaps. If the user replies after a gap of several days or weeks, recognize the delay and adjust your tone accordingly. Do not assume previous messages happened yesterday.)`);
   parts.push('');
 
   if (runtime.contextMatrix) {

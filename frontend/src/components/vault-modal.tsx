@@ -326,8 +326,8 @@ export function VaultModal({ onClose }: VaultModalProps) {
                 {activeTab === "missions" && <TabMissions missionData={vaultData?.mission} />}
                 {activeTab === "mirror" && <TabMirror mirrorData={vaultData?.mirror} />}
                 {activeTab === "debt" && <TabDebt missionData={vaultData?.mission} />}
-                {activeTab === "rival" && <TabRival rivalData={vaultData?.rival} />}
-                {activeTab === "market" && <TabMarket marketData={vaultData?.market} />}
+                {activeTab === "rival" && <TabRival rivalData={vaultData?.rival} onClose={onClose} />}
+                {activeTab === "market" && <TabMarket marketData={vaultData?.market} onClose={onClose} />}
               </div>
             )}
           </div>
@@ -772,9 +772,16 @@ const Dial = ({ title, value, sub, color, strokeOffset }: { title: string, value
   </div>
 );
 
-function TabRival({ rivalData }: { rivalData?: RivalData }) {
+function TabRival({ rivalData, onClose }: { rivalData?: RivalData, onClose?: () => void }) {
   if (!rivalData || rivalData.totalUsers === undefined) {
-    return <div className="text-[#a1a1aa] text-center font-mono py-12 text-[10px] tracking-widest uppercase">Insufficient data for Rival Index. Build consistency first.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center glass-card rounded-2xl mx-4">
+        <Trophy className="size-10 text-[#52525b] mb-2" />
+        <div className="text-[#ffffff] text-sm font-bold tracking-widest uppercase">Insufficient Data for Rival Index</div>
+        <div className="text-[#a1a1aa] text-[12px] max-w-sm leading-relaxed mb-4">You need to build a consistent execution streak before we can place you on the leaderboard against frontrunners.</div>
+        <button onClick={() => { window.dispatchEvent(new Event('new-thread')); onClose?.(); }} className="px-6 py-2 bg-white text-black text-xs font-bold rounded-full hover:bg-gray-200 transition-colors">Start Execution Plan</button>
+      </div>
+    );
   }
   const totalUsers = rivalData.totalUsers;
   const milestonePassed = rivalData.milestonePassedUsers || 0;
@@ -824,9 +831,16 @@ function TabRival({ rivalData }: { rivalData?: RivalData }) {
   );
 }
 
-function TabMarket({ marketData }: { marketData?: MarketData }) {
+function TabMarket({ marketData, onClose }: { marketData?: MarketData, onClose?: () => void }) {
   if (!marketData) {
-    return <div className="text-[#a1a1aa] text-center font-mono py-12 text-[10px] tracking-widest uppercase">No market data available yet.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4 text-center glass-card rounded-2xl mx-4">
+        <Radio className="size-10 text-[#52525b] mb-2" />
+        <div className="text-[#ffffff] text-sm font-bold tracking-widest uppercase">No Market Data Available Yet</div>
+        <div className="text-[#a1a1aa] text-[12px] max-w-sm leading-relaxed mb-4">Once you lock in your goal, Lumensky will pull live market trends, skill demands, and timing signals specific to your trajectory.</div>
+        <button onClick={() => { window.dispatchEvent(new Event('new-thread')); onClose?.(); }} className="px-6 py-2 bg-white text-black text-xs font-bold rounded-full hover:bg-gray-200 transition-colors">Set Your Goal Now</button>
+      </div>
+    );
   }
 
   const signals = marketData.skillDemandSignals || [];
