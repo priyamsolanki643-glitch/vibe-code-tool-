@@ -389,7 +389,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       ];
 
       const responseStream = await client.models.generateContentStream({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-pro',
         contents,
         config: {
           maxOutputTokens: 8192,
@@ -397,7 +397,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         }
       });
 
-      // Accumulate the full response to prevent Serverless SSE connection drops
+      // Stream token by token (restored)
       let fullAiResponse = "";
       for await (const chunk of responseStream) {
         const finishReason = chunk.candidates?.[0]?.finishReason;
@@ -411,18 +411,16 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
 
         if (text) {
           fullAiResponse += text;
+          await stream.writeSSE({ data: JSON.stringify({ chunk: text }) });
         }
 
         if (finishReason && finishReason !== 'STOP') {
           console.warn('[ORACLE] Stream ended prematurely. Reason:', finishReason);
-          fullAiResponse += `\n\n[System Notification: AI Stream halted. Reason: ${finishReason}.]`;
+          const blockMsg = `\n\n[System Notification: AI Stream halted. Reason: ${finishReason}.]`;
+          fullAiResponse += blockMsg;
+          await stream.writeSSE({ data: JSON.stringify({ chunk: blockMsg }) });
           break; // Stop processing further chunks safely
         }
-      }
-      
-      // Send the entire response in one go to ensure 100% delivery
-      if (fullAiResponse) {
-        await stream.writeSSE({ data: JSON.stringify({ chunk: fullAiResponse }) });
       }
 
       // Save AI message to DB
