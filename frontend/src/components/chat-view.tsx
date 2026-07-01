@@ -621,23 +621,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         }
 
         /* Action triggers hover dynamics */
-        @keyframes cosmicWave {
-          0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.3; }
-          33% { transform: translate(-50%, -50%) rotate(120deg) scale(1.1); opacity: 0.5; }
-          66% { transform: translate(-50%, -50%) rotate(240deg) scale(0.9); opacity: 0.4; }
-          100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); opacity: 0.3; }
-        }
-        @keyframes cosmicPulse {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
-          50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
-        }
-        .animate-cosmic-wave {
-          animation: cosmicWave 20s linear infinite;
-        }
-        .animate-cosmic-pulse {
-          animation: cosmicPulse 8s ease-in-out infinite alternate;
-        }
-
         .action-icon-btn {
         }
         
