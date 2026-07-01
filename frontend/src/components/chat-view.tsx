@@ -763,32 +763,11 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                   {greeting.text}
                 </h2>
                 <h2 
-                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] mb-8 md:mb-12 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
+                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
                   style={{ textShadow: "0 0 15px rgba(255,255,255,0.3)" }}
                 >
                   {greeting.accent}
                 </h2>
-
-                {/* Minimalist Pill Suggestions */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 w-full max-w-2xl animate-fade-in-up px-4" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
-                  {[
-                    { icon: <Target className="size-4" />, text: "Mujhe aaj ka relentless target lock karna hai." },
-                    { icon: <Zap className="size-4" />, text: "Routine track se utar gaya hai, reset and fix it." }
-                  ].map((suggestion, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSend(suggestion.text)}
-                      className="group relative flex items-center gap-3 px-6 py-3.5 rounded-full bg-[#18181b]/70 backdrop-blur-xl border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_25px_rgba(255,255,255,0.08)] cursor-pointer w-full sm:w-auto active:scale-95"
-                    >
-                      <div className="flex items-center justify-center text-[#a1a1aa] group-hover:text-white transition-colors duration-300 shrink-0">
-                        {suggestion.icon}
-                      </div>
-                      <span className="text-[13.5px] font-medium text-[#d4d4d8] group-hover:text-white transition-colors truncate text-left">
-                        {suggestion.text}
-                      </span>
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           ) : (
