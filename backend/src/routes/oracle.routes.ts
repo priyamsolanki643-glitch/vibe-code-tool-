@@ -215,8 +215,6 @@ function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporti
 }
 
 
-}
-
 // ─── Smart Thread Title Generator (no AI, instant) ───────────────────────────
 function generateSmartTitle(message: string): string {
   // Strip any prepended timestamp like [Sent: 1 Jul, 07:41 pm]
