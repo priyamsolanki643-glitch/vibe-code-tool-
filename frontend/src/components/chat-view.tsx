@@ -764,14 +764,14 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                 style={{ animationDelay: "50ms" }}
               >
                 {/* Trillion Dollar Cosmic Wave Background */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[450px] md:h-[450px] rounded-full bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-indigo-600/30 blur-[60px] animate-cosmic-wave -z-10 mix-blend-screen pointer-events-none" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] md:w-[300px] md:h-[300px] rounded-[40%_60%_70%_30%] bg-gradient-to-tr from-fuchsia-500/20 to-cyan-500/20 blur-[50px] animate-cosmic-pulse -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[450px] md:h-[450px] rounded-full bg-gradient-to-r from-blue-600/40 via-purple-600/40 to-indigo-600/40 blur-[50px] animate-cosmic-wave z-0 pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] md:w-[300px] md:h-[300px] rounded-[40%_60%_70%_30%] bg-gradient-to-tr from-fuchsia-500/30 to-cyan-500/30 blur-[40px] animate-cosmic-pulse z-0 pointer-events-none" />
 
-                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none z-10">
+                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none relative z-10">
                   {greeting.text}
                 </h2>
                 <h2 
-                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] z-10 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
+                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] relative z-10 mt-2.5 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
                   style={{ textShadow: "0 0 15px rgba(255,255,255,0.3)" }}
                 >
                   {greeting.accent}
