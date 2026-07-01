@@ -619,6 +619,27 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         .suggestion-card-transition {
           transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease;
         }
+
+        /* Action triggers hover dynamics */
+        @keyframes cosmicWave {
+          0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.3; }
+          33% { transform: translate(-50%, -50%) rotate(120deg) scale(1.1); opacity: 0.5; }
+          66% { transform: translate(-50%, -50%) rotate(240deg) scale(0.9); opacity: 0.4; }
+          100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); opacity: 0.3; }
+        }
+        @keyframes cosmicPulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
+          50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+        }
+        .animate-cosmic-wave {
+          animation: cosmicWave 20s linear infinite;
+        }
+        .animate-cosmic-pulse {
+          animation: cosmicPulse 8s ease-in-out infinite alternate;
+        }
+
+        .action-icon-btn {
+        }
         
         .suggestion-card-transition:hover {
           transform: translateY(-2.5px);
@@ -756,14 +777,18 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
             /* Minimalist Empty State */
             <div className="flex-1 flex flex-col items-center justify-center py-12 px-4">
               <div 
-                className="reveal-chat-item flex flex-col items-center gap-2.5 w-full"
+                className="reveal-chat-item relative flex flex-col items-center justify-center gap-2.5 w-full isolate"
                 style={{ animationDelay: "50ms" }}
               >
-                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none">
+                {/* Trillion Dollar Cosmic Wave Background */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[450px] md:h-[450px] rounded-full bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-indigo-600/30 blur-[60px] animate-cosmic-wave -z-10 mix-blend-screen pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] md:w-[300px] md:h-[300px] rounded-[40%_60%_70%_30%] bg-gradient-to-tr from-fuchsia-500/20 to-cyan-500/20 blur-[50px] animate-cosmic-pulse -z-10 mix-blend-screen pointer-events-none" />
+
+                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none z-10">
                   {greeting.text}
                 </h2>
                 <h2 
-                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
+                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] z-10 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
                   style={{ textShadow: "0 0 15px rgba(255,255,255,0.3)" }}
                 >
                   {greeting.accent}
