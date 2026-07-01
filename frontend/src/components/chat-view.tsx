@@ -763,11 +763,11 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                 className="reveal-chat-item relative flex flex-col items-center justify-center gap-2.5 w-full isolate"
                 style={{ animationDelay: "50ms" }}
               >
-                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none relative z-10">
+                <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-tight relative z-10 pb-1">
                   {greeting.text}
                 </h2>
                 <h2 
-                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-none text-[#ffffff] relative z-10 mt-2.5 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
+                  className={`text-[28px] md:text-[36px] font-medium tracking-tight text-center font-sans leading-tight text-[#ffffff] relative z-10 mt-2.5 pb-2 ${greeting.animateAccent ? 'shimmer-text-white' : ''}`} 
                   style={{ textShadow: "0 0 15px rgba(255,255,255,0.3)" }}
                 >
                   {greeting.accent}
