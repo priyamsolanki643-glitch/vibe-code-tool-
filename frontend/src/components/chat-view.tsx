@@ -764,8 +764,14 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                 style={{ animationDelay: "50ms" }}
               >
                 {/* Trillion Dollar Cosmic Wave Background */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] md:w-[450px] md:h-[450px] rounded-full bg-gradient-to-r from-blue-600/40 via-purple-600/40 to-indigo-600/40 blur-[50px] animate-cosmic-wave z-0 pointer-events-none" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150px] h-[150px] md:w-[300px] md:h-[300px] rounded-[40%_60%_70%_30%] bg-gradient-to-tr from-fuchsia-500/30 to-cyan-500/30 blur-[40px] animate-cosmic-pulse z-0 pointer-events-none" />
+                <div 
+                  className="absolute top-1/2 left-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] rounded-full blur-[60px] md:blur-[90px] animate-cosmic-wave z-0 pointer-events-none" 
+                  style={{ background: 'linear-gradient(to right, rgba(37, 99, 235, 0.7), rgba(147, 51, 234, 0.7), rgba(79, 70, 229, 0.7))' }} 
+                />
+                <div 
+                  className="absolute top-1/2 left-1/2 w-[200px] h-[200px] md:w-[400px] md:h-[400px] rounded-[40%_60%_70%_30%] blur-[50px] md:blur-[70px] animate-cosmic-pulse z-0 pointer-events-none" 
+                  style={{ background: 'linear-gradient(to top right, rgba(217, 70, 239, 0.6), rgba(6, 182, 212, 0.6))' }} 
+                />
 
                 <h2 className="text-[28px] md:text-[36px] font-medium tracking-tight text-white text-center font-sans leading-none relative z-10">
                   {greeting.text}

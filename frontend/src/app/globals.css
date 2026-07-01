@@ -804,14 +804,14 @@
    COSMIC WAVE
 ───────────────────────────────────────────── */
 @keyframes cosmicWave {
-  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.3; }
-  33% { transform: translate(-50%, -50%) rotate(120deg) scale(1.1); opacity: 0.5; }
-  66% { transform: translate(-50%, -50%) rotate(240deg) scale(0.9); opacity: 0.4; }
-  100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); opacity: 0.3; }
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.6; }
+  33% { transform: translate(-50%, -50%) rotate(120deg) scale(1.1); opacity: 0.9; }
+  66% { transform: translate(-50%, -50%) rotate(240deg) scale(0.9); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); opacity: 0.6; }
 }
 @keyframes cosmicPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.2; }
-  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
 }
 .animate-cosmic-wave {
   animation: cosmicWave 20s linear infinite;
