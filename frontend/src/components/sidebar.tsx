@@ -178,6 +178,14 @@ const { data: { session } } = await supabase.auth.getSession();
         <style>{`
           .no-scrollbar::-webkit-scrollbar { display: none; }
           .no-scrollbar { scrollbar-width: none; }
+          @keyframes sidebarAudioWave {
+            0%, 100% { height: 4px; opacity: 0.6; }
+            50% { height: 12px; opacity: 1; }
+          }
+          .sidebar-wave-1 { animation: sidebarAudioWave 0.9s ease-in-out infinite; }
+          .sidebar-wave-2 { animation: sidebarAudioWave 0.9s ease-in-out infinite 0.15s; }
+          .sidebar-wave-3 { animation: sidebarAudioWave 0.9s ease-in-out infinite 0.3s; }
+          .sidebar-wave-4 { animation: sidebarAudioWave 0.9s ease-in-out infinite 0.45s; }
         `}</style>
 
         {/* ── Top Brand Header ── */}
@@ -413,7 +421,12 @@ const { data: { session } } = await supabase.auth.getSession();
                       }}
                       className="flex items-center gap-2.5 w-full px-2.5 py-2 text-[#e4e4e7] hover:bg-white/5 font-medium text-[13px] rounded-lg transition-colors cursor-pointer"
                     >
-                      <Atom className="size-3.5 text-[#a1a1aa]" />
+                      <div className="flex items-center gap-[2px] w-[14px] h-[14px] justify-center mr-0.5">
+                        <div className="w-[2px] bg-white rounded-full sidebar-wave-1"></div>
+                        <div className="w-[2px] bg-white rounded-full sidebar-wave-2"></div>
+                        <div className="w-[2px] bg-white rounded-full sidebar-wave-3"></div>
+                        <div className="w-[2px] bg-white rounded-full sidebar-wave-4"></div>
+                      </div>
                       Toggle Theme
                     </button>
                     <button 
