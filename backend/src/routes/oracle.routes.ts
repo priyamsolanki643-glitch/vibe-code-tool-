@@ -174,7 +174,8 @@ function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporti
 
 // ─── Smart Thread Title Generator (no AI, instant) ───────────────────────────
 function generateSmartTitle(message: string): string {
-  const m = message.trim().toLowerCase();
+  // Strip any prepended timestamp like [Sent: 1 Jul, 07:41 pm]
+  let m = message.replace(/^\[Sent:.*?\]\s*/i, '').trim().toLowerCase();
 
   // Topic map — ordered by priority
   const topics: [RegExp, string][] = [
@@ -203,7 +204,7 @@ function generateSmartTitle(message: string): string {
   }
 
   // Fallback: clean up the first few meaningful words
-  const words = message.trim().split(/\s+/).slice(0, 5).join(' ');
+  const words = m.split(/\s+/).slice(0, 5).join(' ');
   const clean = words.replace(/[^\w\s\u0900-\u097F]/g, '').trim();
   return clean.length > 3 ? clean : 'New Chat';
 }

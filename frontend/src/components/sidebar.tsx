@@ -341,7 +341,7 @@ const { data: { session } } = await supabase.auth.getSession();
                           }}
                           className="w-full text-left py-1.5 px-3 pr-8 rounded-lg text-[#a1a1aa] hover:text-white transition-colors text-[13px] truncate cursor-pointer block"
                         >
-                          {chat.title}
+                          {chat.title?.replace(/^\[Sent:.*?\]\s*/i, '') || 'New Chat'}
                         </button>
                         <button
                           onClick={(e) => {

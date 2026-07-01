@@ -342,14 +342,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
       });
       
       let payloadMessage = currentMessages[currentMessages.length - 1]?.text || "";
-      const lastMsgObj = currentMessages[currentMessages.length - 1];
-      if (lastMsgObj && lastMsgObj.createdAt) {
-        try {
-          const dt = new Date(lastMsgObj.createdAt);
-          const dateStr = dt.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-          payloadMessage = `[Sent: ${dateStr}]\n${payloadMessage}`;
-        } catch(e) {}
-      }
+
 
       let contextPayload = "Lumensky user";
       try {
