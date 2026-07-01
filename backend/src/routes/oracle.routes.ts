@@ -172,7 +172,43 @@ function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporti
   return           { primary_soul: 'VISIONARY',        supporting_souls: ['HACKER'],     emotion: 'NEUTRAL',     tone: 'DIRECT',     need: 'STRATEGY',   urgency: 'MEDIUM' };
 }
 
-// ─── ORACLE Streaming Chat Route ─────────────────────────────────────────────
+// ─── Smart Thread Title Generator (no AI, instant) ───────────────────────────
+function generateSmartTitle(message: string): string {
+  const m = message.trim().toLowerCase();
+
+  // Topic map — ordered by priority
+  const topics: [RegExp, string][] = [
+    [/jee|iit|jee.?mains|jee.?adv/i, '🎯 JEE Prep'],
+    [/neet|mbbs|biology|botany|zoology/i, '🔬 NEET Prep'],
+    [/physics|kinematics|thermodynamics|optics|waves|mechanics/i, '⚡ Physics'],
+    [/chemistry|organic|inorganic|mole|reaction/i, '🧪 Chemistry'],
+    [/maths|math|calculus|algebra|geometry|integral|trigon/i, '📐 Mathematics'],
+    [/coding|code|programming|javascript|python|react|node|api|github/i, '💻 Coding'],
+    [/startup|saas|mvp|product|launch|idea|business/i, '🚀 Startup'],
+    [/freelance|client|agency|outreach|sales/i, '💼 Freelancing'],
+    [/youtube|content|video|instagram|social media|creator/i, '🎥 Content'],
+    [/anxious|stress|worried|scared|fear|panic/i, '😰 Anxiety'],
+    [/lazy|procrastinat|distract|focus|concentrate/i, '🎯 Focus'],
+    [/motivat|give up|quit|hopeless|haar|rona|demotivat/i, '🔥 Motivation'],
+    [/money|earn|income|salary|finance|invest/i, '💰 Finance'],
+    [/career|job|placement|resume|interview/i, '🏢 Career'],
+    [/time.?manag|schedule|routine|planner|habit/i, '⏰ Planning'],
+    [/health|sleep|diet|exercise|gym|fitness/i, '💪 Health'],
+    [/relationship|friend|family|girlfriend|boyfriend/i, '❤️ Relationships'],
+    [/strategy|plan|goal|target|roadmap/i, '🗺️ Strategy'],
+  ];
+
+  for (const [pattern, label] of topics) {
+    if (pattern.test(m)) return label;
+  }
+
+  // Fallback: clean up the first few meaningful words
+  const words = message.trim().split(/\s+/).slice(0, 5).join(' ');
+  const clean = words.replace(/[^\w\s\u0900-\u097F]/g, '').trim();
+  return clean.length > 3 ? clean : 'New Chat';
+}
+
+
 oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) => {
   const { message, conversationHistory, studentContext } = c.req.valid('json');
   const userId = c.get('userId');
@@ -187,7 +223,7 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       // Step 1: Thread + DB ops (no AI calls yet)
       let currentThreadId = queryThreadId;
       if (!currentThreadId || currentThreadId === 'null') {
-        const title = message.substring(0, 40) + '...';
+        const title = generateSmartTitle(message);
         const thread = await DbService.createChatThread(userId, title);
         currentThreadId = thread.id;
       }

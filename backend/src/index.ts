@@ -7,6 +7,7 @@ import { streamRoutes } from './routes/stream.routes';
 import { authRoutes } from './routes/auth.routes';
 import { threadRoutes } from './routes/thread.routes';
 import { oracleRoutes } from './routes/oracle.routes';
+import { adminRoutes } from './routes/admin.routes';
 import { DbService } from './services/db.service';
 import { VectorService } from './services/vector.service';
 import { WebSocketService } from './services/websocket.service';
@@ -109,6 +110,7 @@ app.route('/api/v1/interaction', streamRoutes);
 app.route('/api/v1/auth', authRoutes);
 app.route('/api/v1/threads', threadRoutes);
 app.route('/api/v1/oracle', oracleRoutes);
+app.route('/api/v1/admin', adminRoutes);
 
 // Cloud Run sets PORT env var to 8080 — always read directly from process.env
 const PORT = process.env.PORT || 8080;
