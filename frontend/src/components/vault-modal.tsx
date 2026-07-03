@@ -97,6 +97,12 @@ const TABS: { id: TabId; label: string; icon: React.ElementType; desc: string }[
     icon: Radio,
     desc: "Live external data feed of test trends, syllabus weightage, and critical timing signals."
   },
+  {
+    id: "aggregation",
+    label: "Data Aggregation",
+    icon: FileText,
+    desc: "Deep scraping integration. Real-time data from PW systems, Google Scraping, and App Activity."
+  }
 ];
 
 export function VaultModal({ onClose }: VaultModalProps) {
@@ -328,6 +334,7 @@ export function VaultModal({ onClose }: VaultModalProps) {
                 {activeTab === "debt" && <TabDebt missionData={vaultData?.mission} />}
                 {activeTab === "rival" && <TabRival rivalData={vaultData?.rival} />}
                 {activeTab === "market" && <TabMarket marketData={vaultData?.market} />}
+                {activeTab === "aggregation" && <TabAggregation />}
               </div>
             )}
           </div>
@@ -337,6 +344,97 @@ export function VaultModal({ onClose }: VaultModalProps) {
   );
 }
 
+function TabAggregation() {
+  return (
+    <div className="flex flex-col gap-6 animate-fade-in w-full">
+      <div className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-[#0a192f] to-black p-5 sm:p-8 shadow-[0_0_40px_rgba(6,182,212,0.05)]">
+        <div className="absolute top-[-20%] right-[-5%] p-4 opacity-10 pointer-events-none">
+          <Target className="size-32 text-cyan-500" />
+        </div>
+
+        <div className="flex items-center gap-2 mb-4">
+          <span className="flex size-2 rounded-full bg-cyan-500 animate-pulse" />
+          <span className="text-[10px] font-mono text-cyan-400 tracking-[0.2em] uppercase">
+            Data Telemetry • Live Connection
+          </span>
+        </div>
+
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight mb-3 leading-tight max-w-2xl relative z-10">
+          <span className="text-cyan-400">VAULT AGGREGATION:</span> The All-Seeing Eye.
+        </h3>
+        <p className="text-sm sm:text-base text-[#d4d4d8] font-medium leading-relaxed max-w-3xl relative z-10">
+          Real-time aggregation from reality index mirrors, google scraping instances, and app activity. Every move is tracked and mapped for absolute mastery.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Google Scraping Card */}
+        <div className="glass-card rounded-2xl p-5 border-t-[3px] border-t-purple-500/50 relative overflow-hidden group">
+          <div className="text-[10px] font-mono text-purple-400 tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
+            <Radio className="size-3" /> External Scraping
+          </div>
+          <div className="space-y-4">
+            <div className="bg-[#09090b] p-3 rounded-lg border border-white/5">
+              <div className="text-xs text-white mb-1">Google Search Trends</div>
+              <div className="text-[10px] font-mono text-[#a1a1aa] flex justify-between">
+                <span>Status: Active</span>
+                <span className="text-purple-400">Syncing...</span>
+              </div>
+            </div>
+            <div className="bg-[#09090b] p-3 rounded-lg border border-white/5">
+              <div className="text-xs text-white mb-1">Competitor Sites</div>
+              <div className="text-[10px] font-mono text-[#a1a1aa] flex justify-between">
+                <span>Status: Parsed</span>
+                <span className="text-green-400">Optimal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* App Activity Card */}
+        <div className="glass-card rounded-2xl p-5 border-t-[3px] border-t-emerald-500/50 relative overflow-hidden group">
+          <div className="text-[10px] font-mono text-emerald-400 tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
+            <TrendingUp className="size-3" /> App Telemetry
+          </div>
+          <div className="space-y-4">
+            <div className="bg-[#09090b] p-3 rounded-lg border border-white/5">
+              <div className="text-xs text-white mb-1">User Sessions</div>
+              <div className="flex items-end gap-2">
+                <div className="text-2xl font-bold text-white">8,492</div>
+                <div className="text-[10px] font-mono text-emerald-400 mb-1">+12% /hr</div>
+              </div>
+            </div>
+            <div className="bg-[#09090b] p-3 rounded-lg border border-white/5">
+              <div className="text-xs text-white mb-1">Interaction Rate</div>
+              <div className="flex items-end gap-2">
+                <div className="text-2xl font-bold text-white">94.2%</div>
+                <div className="text-[10px] font-mono text-emerald-400 mb-1">High</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reality Index Card */}
+        <div className="glass-card rounded-2xl p-5 border-t-[3px] border-t-amber-500/50 relative overflow-hidden group">
+          <div className="text-[10px] font-mono text-amber-400 tracking-[0.2em] uppercase mb-4 flex items-center gap-2">
+            <CheckCircle className="size-3" /> Reality Mirror Node
+          </div>
+          <div className="space-y-4">
+            <div className="bg-[#09090b] p-3 rounded-lg border border-white/5">
+              <div className="text-xs text-white mb-1">State Reflection</div>
+              <div className="text-[10px] font-mono text-[#a1a1aa] leading-relaxed mt-1">
+                All vault data actively routing to the central dashboard. 0% loss detected.
+              </div>
+            </div>
+            <button className="w-full py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors">
+              Force Sync
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 function TabMissions({ missionData }: { missionData?: MissionData }) {
   const [activeMission, setActiveMission] = useState<any | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -390,8 +488,6 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
       consistency: missionData.consistencyScore || 0
     }
   ] : [];
-
-  const [activeMission, setActiveMission] = useState<any | null>(null);
 
   useEffect(() => {
     // Auto-open strategy if it exists

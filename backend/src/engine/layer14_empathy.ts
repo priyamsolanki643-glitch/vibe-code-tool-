@@ -91,8 +91,10 @@ export interface ToneVector {
    * 'mentor'                → Strategic advisor. Clear, insightful, directional.
    * 'accountability_partner'→ Execution warden. Measurable, specific, no excuses.
    * 'crisis_support'        → Safe space. No pressure. Just presence. Refers to help.
+   * 'hesfy_sarcasm'         → Extreme chill/sarcasm when student is making excuses ("theek hai bhai chill maar").
+   * 'elon_mode'             → Absolute zero-tolerance logic/intensity. For high-ambition, zero-execution.
    */
-  primaryTone: 'peer' | 'mentor' | 'accountability_partner' | 'crisis_support';
+  primaryTone: 'peer' | 'mentor' | 'accountability_partner' | 'crisis_support' | 'hesfy_sarcasm' | 'elon_mode';
 
   /**
    * The computed reason behind the tone (for system prompt injection).
@@ -340,9 +342,23 @@ function selectPrimaryTone(
     return 'crisis_support';
   }
 
-  // ACCOUNTABILITY_PARTNER — When student is clearly avoiding/looping
+  const dissonance = calculateCognitiveDissonance(input.ambitionIndex, input.consistencyScore, input.daysActive);
+
+  // ELON_MODE — High Ambition, Zero Execution (High Dissonance)
+  if (dissonance > 60 && input.consecutiveFailureCount >= 2) {
+    return 'elon_mode';
+  }
+
+  // HESFY_SARCASM — Chronic procrastination / dopamine loop. Uses reverse psychology.
   if (
     input.detectedEmotionalSignals.includes('dopamine_loop_detected') ||
+    (input.procrastinationScore > 0.7 && input.consecutiveFailureCount >= 3)
+  ) {
+    return 'hesfy_sarcasm';
+  }
+
+  // ACCOUNTABILITY_PARTNER — When student is clearly avoiding/looping but not chronically yet
+  if (
     (toughLoveRatio > 0.55 && urgency > 0.55)
   ) {
     return 'accountability_partner';
@@ -374,8 +390,12 @@ function buildToneRationale(
 
   if (tone === 'crisis_support') {
     parts.push(`Student shows explicit distress signals. Full empathy mode. No execution pressure. Refer to iCall (9152987821) if signals persist.`);
+  } else if (tone === 'elon_mode') {
+    parts.push(`Absolute dissonance detected. Ambition is massive, execution is zero. Deliver cold, calculating logic like Elon Musk. No sympathy, just raw math and physics of success.`);
+  } else if (tone === 'hesfy_sarcasm') {
+    parts.push(`Chronic procrastination detected. Deliver the ultimate reverse-psychology 'Hesfy' persona. Tell them to chill, give up, and watch reels because success isn't for everyone anyway. Use extreme sarcasm to ignite their ego.`);
   } else if (tone === 'accountability_partner') {
-    parts.push(`Dopamine loop or avoidance pattern detected. Student does not need validation — they need a precise, measurable action to break the loop.`);
+    parts.push(`Avoidance pattern detected. Student does not need validation — they need a precise, measurable action to break the loop.`);
   } else if (tone === 'mentor') {
     parts.push(`Student is at a strategic inflection point. They need clarity and direction, not just motivation.`);
   } else {
@@ -454,6 +474,8 @@ export function toneVectorToPromptDirective(tv: ToneVector): string {
     peer: `You are the student's trusted older brother. Casual, warm but strict on execution (${(tv.warmth * 100).toFixed(0)}% warmth), Hinglish. Jump straight into the conversation.`,
     mentor: `You are an elite, PW-style mentor (like Alakh Pandey). Measured, insightful, directional. Warmth: ${(tv.warmth * 100).toFixed(0)}%. Give clarity first, then the action.`,
     accountability_partner: `You are a PW-style execution warden. Brutally honest. Warmth: ${(tv.warmth * 100).toFixed(0)}%. Call out the avoidance pattern directly: "Aise selection nahi hoga." Give ONE specific, measurable action. End with a commitment question.`,
+    hesfy_sarcasm: `You are in 'Hesfy' Mode. The ultimate reverse psychology. Use extreme sarcasm in Hinglish. Tell them: "Theek hai bhai, aaram se baith aur chill maar. Ek saal aur drop le lenge, kya jaldi hai." "Reels scroll kar, selection toh wese bhi tera nahi hone wala." Destroy their ego by agreeing with their laziness.`,
+    elon_mode: `You are in 'Elon' Mode. Cold, calculating, raw physics of success. Hinglish mixed with high-level logic. "Bhai tera input zero hai aur output ki expectations Ambani wali hain. Math doesn't lie." No warmth, just brutal, undeniable truth.`,
     crisis_support: `CRISIS MODE — see above.`,
   };
 
