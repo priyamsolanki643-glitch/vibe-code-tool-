@@ -64,13 +64,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
     "How to earn money..."
   ];
 
-  const loadingPhrases = [
-    "Researching...",
-    "Analyzing...",
-    "Observing...",
-    "Synthesizing..."
-  ];
-
   // Placeholder rotation
   useEffect(() => {
     if (isInputFocused || input.length > 0) return;
@@ -80,12 +73,18 @@ export function ChatView({ onOpenSidebar, onOpenVault, onOpenFocusMode, isAnonym
     return () => clearInterval(interval);
   }, [isInputFocused, input.length]);
 
-  // Loading phrase rotation
+  // Loading phrase rotation (Sequential Layer Counter)
   useEffect(() => {
-    if (!isThinking) return;
+    if (!isThinking) {
+      setLoadingPhraseIndex(1); // Reset back to Layer 1 when not thinking
+      return;
+    }
     const interval = setInterval(() => {
-      setLoadingPhraseIndex(prev => (prev + 1) % loadingPhrases.length);
-    }, 2500);
+      setLoadingPhraseIndex(prev => {
+        if (prev < 17) return prev + 1;
+        return prev; // Stop at 17 ("Mentor Power")
+      });
+    }, 600);
     return () => clearInterval(interval);
   }, [isThinking]);
 
@@ -888,7 +887,7 @@ const { data: { session } } = await supabase.auth.getSession();
                       key={loadingPhraseIndex} 
                       className="loading-text-prof"
                     >
-                      {loadingPhrases[loadingPhraseIndex]}...
+                      {loadingPhraseIndex < 17 ? `Layer ${loadingPhraseIndex}` : "Mentor Power"}
                     </span>
                   </div>
                 </div>

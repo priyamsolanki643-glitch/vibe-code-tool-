@@ -391,8 +391,6 @@ function TabMissions({ missionData }: { missionData?: MissionData }) {
     }
   ] : [];
 
-  const [activeMission, setActiveMission] = useState<any | null>(null);
-
   useEffect(() => {
     // Auto-open strategy if it exists
     if (missions.length > 0 && !activeMission) {
