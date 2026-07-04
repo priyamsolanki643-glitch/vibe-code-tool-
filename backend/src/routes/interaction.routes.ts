@@ -68,11 +68,11 @@ function toUserSafeAIText(err: any): string {
   }
 
   if (isRetryableAIError(message)) {
-    return 'Bhai thoda temporary network issue aa raha hai backend pe. 10 second ruk ke dobara message bhej. DEBUG_INFO: ' + rawMessage;
+    return 'Bhai server pe thoda load hai. 10 second ruk ke dobara apna status bhej.';
   }
 
-  // TEMPORARY DEBUG: Return actual error so we can see what's failing
-  return `[SYSTEM OVERLOAD]: Bhai backend mein error hai, dhyan se check kar: ${rawMessage}`;
+  // Fallback error without leaking stack traces or internal logs
+  return `Engine reconnect ho raha hai. Apna focus screen par rakh, aur try again kar.`;
 }
 import { DbService } from '../services/db.service';
 import { VectorService } from '../services/vector.service';
