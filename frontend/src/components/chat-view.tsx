@@ -81,22 +81,10 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
   ];
 
   const loadingPhrases = [
-    "Intelligence Matrix scanning...",
-    "Reality Mirror calibrating...",
-    "Capability Vector mapping...",
-    "Survivability Engine running...",
-    "Simulation Core active...",
-    "Opportunity Radar sweeping...",
-    "Friction Detector engaged...",
-    "Probability Engine computing...",
-    "Path Architect designing...",
-    "Ambition Calibrator tuning...",
-    "State Lock verifying...",
-    "Execution Protocol loading...",
-    "Accountability Layer armed...",
-    "Empathy Engine reading you...",
-    "Chaos Shield activated...",
-    "Synthesizing your reality..."
+    "Using brainpower...",
+    "Building your plan...",
+    "Checking market data...",
+    "Synthesizing..."
   ];
 
   // Placeholder rotation
