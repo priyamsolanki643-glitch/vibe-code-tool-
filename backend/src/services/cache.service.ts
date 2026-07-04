@@ -149,7 +149,7 @@ export interface OmniContext {
     urgency: number;                     // 0.0 (relaxed) → 1.0 (crisis mode)
     toughLoveRatio: number;              // 0.0 (pure validation) → 1.0 (hard truth)
     hopeSignal: number;                  // 0.0 (reality check) → 1.0 (motivate hard)
-    primaryTone: 'peer' | 'mentor' | 'accountability_partner' | 'crisis_support' | 'hesfy_sarcasm' | 'elon_mode';
+    primaryTone: 'peer' | 'mentor' | 'accountability_partner' | 'crisis_support';
     toneRationale: string;               // Why this tone was chosen
     isCrisisMode: boolean;               // If true, Gemini MUST include mental health resources
   };
