@@ -61,7 +61,12 @@ function readLocalDb(): LocalDbShape {
 }
 
 function writeLocalDb(data: LocalDbShape) {
-  // Disabled
+  try {
+    fs.writeFileSync(fallbackFilePath, JSON.stringify(data, null, 2));
+  } catch (e: unknown) {
+    const errObj = e as Error;
+    console.error('DbService: Error writing local database', errObj.message || e);
+  }
 }
 
 function getGoalCategory(missionName: string): string {
