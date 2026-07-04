@@ -222,7 +222,7 @@ Reply casually in the language the user is speaking (or default to ${userLanguag
       }).catch(console.error);
     }
 
-    let result: any;
+    let result: { type: 'chat_response' | 'critique_response' | 'onboarding_complete', data: unknown };
     let systemPrompt = '';
     let isTransitioningToExecution = false;
 
@@ -856,9 +856,11 @@ Do not use markdown. Return only the JSON object.
       });
 
     return c.json({ status: 'success', data: savedMission });
-  } catch (error: any) {
-    console.error('Lock Trajectory Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'LOCK_TRAJECTORY_FAILED', message: errObj.message || String(error) };
+    console.error('Lock Trajectory Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -908,7 +910,7 @@ interactionRoutes.post('/log-task', async (c) => {
     }).catch(err => console.error('HIVE_MIND: Failed to store task outcome memory:', err));
 
     return c.json({ status: 'success', data: updatedMission });
-  } catch (err: any) {
+  } catch (err: unknown) {
     const safeText = toUserSafeAIText(err);
 
     console.error('INTERACTION_ROUTE /log-task ERROR:', getAIErrorMessage(err));
@@ -1138,9 +1140,11 @@ interactionRoutes.post('/diagnostic', async (c) => {
     const input = await c.req.json();
     const result = runCircumstantialDiagnosis(input);
     return c.json({ status: 'success', data: result });
-  } catch (error: any) {
-    console.error('Diagnostic API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'DIAGNOSTIC_FAILED', message: errObj.message || String(error) };
+    console.error('Diagnostic API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1150,9 +1154,11 @@ interactionRoutes.post('/architect', async (c) => {
     const input = await c.req.json();
     const result = await runTacticalArchitect(input);
     return c.json({ status: 'success', data: result });
-  } catch (error: any) {
-    console.error('Tactical Architect API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'ARCHITECT_FAILED', message: errObj.message || String(error) };
+    console.error('Tactical Architect API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1194,9 +1200,11 @@ interactionRoutes.post('/operator/task', async (c) => {
     }
     
     return c.json({ status: 'success', data: result });
-  } catch (error: any) {
-    console.error('Execution Operator Task Update API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'TASK_UPDATE_FAILED', message: errObj.message || String(error) };
+    console.error('Execution Operator Task Update API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1214,9 +1222,11 @@ interactionRoutes.post('/operator/critique', async (c) => {
 
     const result = processOperatorCritique(input);
     return c.json({ status: 'success', data: result });
-  } catch (error: any) {
-    console.error('Execution Operator Critique API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'CRITIQUE_FAILED', message: errObj.message || String(error) };
+    console.error('Execution Operator Critique API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1232,9 +1242,11 @@ interactionRoutes.post('/operator/current-tasks', async (c) => {
       strategyState
     );
     return c.json({ status: 'success', data: taskSprint });
-  } catch (error: any) {
-    console.error('Fetch Current Tasks API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'FETCH_TASKS_FAILED', message: errObj.message || String(error) };
+    console.error('Fetch Current Tasks API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1247,9 +1259,10 @@ interactionRoutes.get('/api/v1/analytics/cohort-health', async (c) => {
       status: 'success',
       data: b2bData
     });
-  } catch (err) {
-    console.error("Cohort Health API Error:", err);
-    return c.json({ error: "Failed to fetch cohort analytics" }, 500);
+  } catch (err: unknown) {
+    const apiError = { status: 'error', code: 'COHORT_HEALTH_FAILED', message: 'Failed to fetch cohort analytics', details: String(err) };
+    console.error("Cohort Health API Error:", apiError);
+    return c.json(apiError, 500);
   }
 });
 
@@ -1261,8 +1274,10 @@ interactionRoutes.post('/roast', async (c) => {
 
     const result = await LLMService.generateRealityRoast(routine);
     return c.json({ status: 'success', data: result });
-  } catch (error: any) {
-    console.error('Roast API Error:', error);
-    return c.json({ error: error.message }, 500);
+  } catch (error: unknown) {
+    const errObj = error as Error;
+    const apiError = { status: 'error', code: 'ROAST_API_FAILED', message: errObj.message || String(error) };
+    console.error('Roast API Error:', apiError);
+    return c.json(apiError, 500);
   }
 });
