@@ -1173,3 +1173,4 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
     </div>
   );
 }
+// Trigger Vercel Deploy  
