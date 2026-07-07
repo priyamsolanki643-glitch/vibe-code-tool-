@@ -205,7 +205,7 @@ export default function ChatHistoryPage() {
                 {/* Chat list */}
                 <div className="flex flex-col gap-1">
                   {group.chats.map((chat, ci) => (
-                    <div key={ci} className="group relative" onClick={e => e.stopPropagation()}>
+                    <div key={chat.id} className="group relative" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => openChat(chat.id)}
                         className="w-full text-left px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-all text-[14px] text-[#a1a1aa] hover:text-white flex items-start justify-between gap-3 group cursor-pointer"

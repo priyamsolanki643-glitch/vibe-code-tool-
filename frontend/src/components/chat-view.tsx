@@ -995,7 +995,10 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
       </div>
 
       {/* ── Input Box (Trajectory Forge copy) ── */}
-      <div className="shrink-0 px-4 md:px-8 pb-6 pt-2 bg-[#000000] relative z-10">
+      <div 
+        className="shrink-0 px-4 md:px-8 pt-2 bg-[#000000] relative z-10"
+        style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+      >
         <div 
           className="reveal-chat-item max-w-[720px] w-full mx-auto"
           style={{ animationDelay: "550ms" }}

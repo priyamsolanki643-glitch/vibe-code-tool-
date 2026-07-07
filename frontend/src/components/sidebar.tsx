@@ -340,8 +340,8 @@ const { data: { session } } = await supabase.auth.getSession();
                     <div className="text-[10px] font-semibold text-[#666666] tracking-wider uppercase px-3 mb-1">
                       {group.group}
                     </div>
-                    {group.chats.map((chat: ChatThread, j: number) => (
-                      <div key={j} className="group relative">
+                    {group.chats.map((chat: ChatThread) => (
+                      <div key={chat.id} className="group relative">
                         <button 
                           onClick={() => {
                             window.dispatchEvent(new CustomEvent('load-thread', { detail: { threadId: chat.id } }));
