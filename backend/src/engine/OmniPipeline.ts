@@ -121,6 +121,18 @@ function buildOmniContext(input: OmniPipelineInput): OmniContext {
   };
   const toneVector = computeToneVector(empathyInput);
 
+  // ── Reward State Evaluator ────────────────────────────────────────────────
+  const tasksDoneToday = currentTasks.filter(t => t.status === 'completed').length;
+  const totalTasks = currentTasks.length;
+
+  // If all tasks are done and consistency is good, force ToneVector to be rewarding
+  if (totalTasks > 0 && tasksDoneToday === totalTasks && (strategyState?.consistencyScore ?? 0) > 60) {
+    toneVector.toughLoveRatio = 0.1;
+    toneVector.primaryTone = 'peer';
+    toneVector.warmth = 0.9;
+  }
+
+
   // ── Layer 15: Chaos State ───────────────────────────────────────────────────
   let chaosState: OmniContext['chaosState'] = {
     currentVolatilityScore: 0.2,

@@ -209,7 +209,7 @@ function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporti
   if (isQuitting) return { primary_soul: 'DRILL_SERGEANT', supporting_souls: ['VISIONARY'], emotion: 'DEMOTIVATED', tone: 'AGGRESSIVE', need: 'TOUGH_LOVE', urgency: 'HIGH' };
   if (isStruggling) return { primary_soul: 'VISIONARY', supporting_souls: ['DRILL_SERGEANT'], emotion: 'ANXIOUS', tone: 'EMPATHETIC', need: 'CALM_THEN_PUSH', urgency: 'HIGH' };
   if (isExcuse) return { primary_soul: 'DRILL_SERGEANT', supporting_souls: ['VISIONARY'], emotion: 'LAZY', tone: 'BLUNT', need: 'TOUGH_LOVE', urgency: 'MEDIUM' };
-  if (isStudy) return { primary_soul: 'SCHOLAR', supporting_souls: ['VISIONARY'], emotion: 'ANXIOUS', tone: 'STRUCTURED', need: 'KNOWLEDGE', urgency: 'MEDIUM' };
+  if (isStudy) return { primary_soul: 'SCHOLAR', supporting_souls: ['VISIONARY'], emotion: 'FOCUSED', tone: 'STRUCTURED', need: 'KNOWLEDGE', urgency: 'MEDIUM' };
   if (isHack) return { primary_soul: 'HACKER', supporting_souls: ['VISIONARY'], emotion: 'ENERGIZED', tone: 'ENERGETIC', need: 'QUICK_TIP', urgency: 'LOW' };
   return { primary_soul: 'VISIONARY', supporting_souls: ['HACKER'], emotion: 'NEUTRAL', tone: 'DIRECT', need: 'STRATEGY', urgency: 'MEDIUM' };
 }
@@ -275,9 +275,77 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       // Save user message
       await DbService.saveMessage(currentThreadId, userId, 'user', message);
 
+      // Fetch user state data for OmniPipeline
+      const [activeMission, contextMatrix, frictionProfile, strategyState, activeTasks, recentMemories] = await Promise.all([
+        DbService.getActiveMission(userId).catch((): any => null),
+        DbService.getContextMatrix(userId).catch((): any => null),
+        DbService.getFrictionProfile(userId).catch((): any => null),
+        DbService.getStrategyState(userId).catch((): any => null),
+        DbService.getActiveTasks(userId).catch((): any[] => []),
+        DbService.getRecentMemories(userId).catch((): any[] => [])
+      ]);
+
+      // Run 16-Layer OmniPipeline FIRST
+      const omniInput: OmniPipelineInput = {
+        userId,
+        userLanguage,
+        userMessage: message,
+        conversationHistory: conversationHistory as any,
+        contextMatrix,
+        frictionProfile,
+        strategyState,
+        detectedEmotionalSignals: [],
+        detectedChaosEvents: [],
+        daysSinceLastActivity: 0,
+        consecutiveCompletionCount: activeMission?.streakDays ?? 0,
+        consecutiveFailureCount: activeMission?.streakDays === 0 ? 1 : 0,
+        daysSinceLastMilestone: activeMission?.dayNumber ?? 0,
+        milestonesHitTotal: activeMission?.dayNumber ?? 0,
+        streakDays: activeMission?.streakDays ?? 0,
+        currentTasks: activeTasks,
+        recentMemories,
+      };
+
+      let omniDataBlock = "";
+      let engineTone: string | null = null;
+      try {
+        const omniResult = await runOmniPipeline(omniInput);
+        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
+        engineTone = toneVector.primaryTone;
+        omniDataBlock = `[16-LAYER REAL-TIME ENGINE OUTPUT]
+- Tone Directive: ${JSON.stringify(toneVector)}
+- Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
+- Student Streak: ${userSnapshot.streakDays} days
+- Consistency Score: ${userSnapshot.consistencyScore}/100
+- Active Path: ${userSnapshot.activePath}`;
+      } catch (err) {
+        console.error('[ORACLE] OmniPipeline failed, skipping:', err);
+      }
+
       // Fast keyword-based soul selection — ZERO extra API calls
-      const analysis = pickSoulFromKeywords(message);
-      const activeMission = await DbService.getActiveMission(userId).catch((): any => null);
+      let analysis = pickSoulFromKeywords(message);
+
+      // ENGINE OVERRIDE: If the keyword didn't detect an extreme state, let the 16-layer engine dictate the soul.
+      const isExtremeState = ['DEMOTIVATED', 'ANXIOUS', 'LAZY'].includes(analysis.emotion);
+      if (engineTone && !isExtremeState) {
+        if (engineTone === 'peer') {
+          analysis.primary_soul = 'VISIONARY';
+          analysis.supporting_souls = ['HACKER'];
+          analysis.tone = 'DIRECT';
+        } else if (engineTone === 'mentor') {
+          analysis.primary_soul = 'SCHOLAR';
+          analysis.supporting_souls = ['VISIONARY'];
+          analysis.tone = 'STRUCTURED';
+        } else if (engineTone === 'accountability_partner') {
+          analysis.primary_soul = 'DRILL_SERGEANT';
+          analysis.supporting_souls = ['VISIONARY'];
+          analysis.tone = 'AGGRESSIVE';
+        } else if (engineTone === 'crisis_support') {
+          analysis.primary_soul = 'VISIONARY';
+          analysis.supporting_souls = ['SCHOLAR'];
+          analysis.tone = 'EMPATHETIC';
+        }
+      }
 
 
       // ── Intercept for Consistency Onboarding ─────────────────────────────────────
@@ -409,40 +477,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
         })
       });
 
-      // Step 2: Run 16-Layer OmniPipeline (pure TypeScript math — NO AI call, ~5ms)
-      const omniInput: OmniPipelineInput = {
-        userId,
-        userLanguage,
-        userMessage: message,
-        conversationHistory: conversationHistory as any,
-        contextMatrix: null,
-        frictionProfile: null,
-        strategyState: null,
-        detectedEmotionalSignals: [],
-        detectedChaosEvents: [],
-        daysSinceLastActivity: 0,
-        consecutiveCompletionCount: activeMission?.streakDays ?? 0,
-        consecutiveFailureCount: activeMission?.streakDays === 0 ? 1 : 0,
-        daysSinceLastMilestone: activeMission?.dayNumber ?? 0,
-        milestonesHitTotal: activeMission?.dayNumber ?? 0,
-        streakDays: activeMission?.streakDays ?? 0,
-        currentTasks: [],
-        recentMemories: [],
-      };
-
-      let omniDataBlock = "";
-      try {
-        const omniResult = await runOmniPipeline(omniInput);
-        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
-        omniDataBlock = `[16-LAYER REAL-TIME ENGINE OUTPUT]
-- Tone Directive: ${JSON.stringify(toneVector)}
-- Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
-- Student Streak: ${userSnapshot.streakDays} days
-- Consistency Score: ${userSnapshot.consistencyScore}/100
-- Active Path: ${userSnapshot.activePath}`;
-      } catch (err) {
-        console.error('[ORACLE] OmniPipeline failed, skipping:', err);
-      }
+      // (OmniPipeline logic was moved upstream)
 
       // Step 3: Build Oracle system prompt and merge with 16-layer output
       const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);

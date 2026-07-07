@@ -240,7 +240,7 @@ export class DbService {
       const newMission = {
         id: mission.id || `user-mission-${Date.now()}`,
         ...mission,
-        createdAt: mission.createdAt || new Date().toISOString()
+        created_at: mission.created_at || new Date().toISOString()
       };
 
       if (idx >= 0) data.missions[idx] = newMission;
@@ -254,8 +254,8 @@ export class DbService {
       .from('missions')
       .upsert({
         ...mission,
-        createdAt: mission.createdAt || new Date().toISOString()
-      })
+        created_at: mission.created_at || new Date().toISOString()
+      }, { onConflict: 'user_id' })
       .select()
       .single();
 
@@ -353,15 +353,17 @@ export class DbService {
 
     if (isLocalFallback) {
       const data = readLocalDb();
+      const existingIdx = data.market_reports.findIndex((r: any) => r.user_id === userId);
       const newReport = { id: `report-${Date.now()}`, ...payload };
-      data.market_reports.push(newReport);
+      if (existingIdx >= 0) data.market_reports[existingIdx] = { ...data.market_reports[existingIdx], ...payload };
+      else data.market_reports.push(newReport);
       writeLocalDb(data);
       return newReport;
     }
 
     const { data, error } = await supabase
       .from('market_reports')
-      .upsert(payload)
+      .upsert(payload, { onConflict: 'user_id' })
       .select()
       .single();
 
@@ -387,18 +389,22 @@ export class DbService {
 
     const { data, error } = await supabase
       .from('missions')
-      .select('missionName, dayNumber');
+      .select('missionName, dayNumber, mission_name, day_number');
 
     if (error) {
       console.error('getRivalIndexStats DB Error:', error);
       return { totalUsers: 847, milestonePassedUsers: 23 };
     }
 
-    const matches = (data || []).filter((m: any) => getGoalCategory(m.missionName) === category);
+    // Support both camelCase and snake_case column names from Supabase
+    const matches = (data || []).filter((m: any) => {
+      const name = m.missionName || m.mission_name || '';
+      return getGoalCategory(name) === category;
+    });
 
     return {
       totalUsers: matches.length,
-      milestonePassedUsers: matches.filter((m: any) => m.dayNumber > 30).length
+      milestonePassedUsers: matches.filter((m: any) => (m.dayNumber || m.day_number || 0) > 30).length
     };
   }
 
@@ -470,21 +476,32 @@ export class DbService {
     }
   }
 
-  static async getChatThreads(userId: string): Promise<any[]> {
+  static async getChatThreads(userId: string, searchQuery?: string): Promise<any[]> {
     if (userId.startsWith('anon_')) return [];
 
     if (isLocalFallback) {
       const data = readLocalDb();
-      return data.chat_threads
+      let threads = data.chat_threads
         .filter((t) => t.user_id === userId)
         .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        threads = threads.filter((t: any) => t.title?.toLowerCase().includes(q));
+      }
+      return threads;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('chat_threads')
       .select('*')
       .eq('user_id', userId)
       .order('updated_at', { ascending: false });
+
+    if (searchQuery) {
+      query = query.ilike('title', `%${searchQuery}%`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('getChatThreads DB error:', error);
@@ -816,4 +833,23 @@ export class DbService {
       console.error('deleteOtpSession DB Error:', error);
     }
   }
+
+  // ── Engine Mock Methods ──────────────────────────────────────────────────
+  static async getContextMatrix(userId: string): Promise<any> { return null; }
+  static async getFrictionProfile(userId: string): Promise<any> { return null; }
+  static async getStrategyState(userId: string): Promise<any> {
+    try {
+      const activeMission = await this.getActiveMission(userId);
+      if (activeMission) {
+        return { 
+          consistencyScore: activeMission.consistencyScore ?? 50,
+          currentDayNumber: activeMission.dayNumber ?? 1,
+          totalTargetDays: 90
+        };
+      }
+    } catch(e) {}
+    return null;
+  }
+  static async getActiveTasks(userId: string): Promise<any[]> { return []; }
+  static async getRecentMemories(userId: string): Promise<any[]> { return []; }
 }

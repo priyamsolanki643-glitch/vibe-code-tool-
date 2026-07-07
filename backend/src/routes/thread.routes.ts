@@ -14,13 +14,15 @@ threadRoutes.get('/', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    const threads = await DbService.getChatThreads(userId);
+    const searchQuery = c.req.query('q') || '';
+    const threads = await DbService.getChatThreads(userId, searchQuery);
     return c.json({ status: 'success', data: threads });
   } catch (error: any) {
     console.error('Fetch Threads Error:', error);
     return c.json({ error: 'Failed to fetch threads.' }, 500);
   }
 });
+
 
 threadRoutes.post('/sync', async (c) => {
   try {
