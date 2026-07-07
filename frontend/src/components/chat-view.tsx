@@ -890,12 +890,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                             >
                               {copiedId === m.id ? <Check className="size-4 text-green-400" /> : <Copy className="size-4" />}
                             </button>
-                            <button className="p-1 hover:text-white cursor-pointer transition-colors">
-                              <ThumbsUp className="size-4" />
-                            </button>
-                            <button className="p-1 hover:text-white cursor-pointer transition-colors">
-                              <ThumbsDown className="size-4" />
-                            </button>
                           </div>
                         </div>
                       )}
