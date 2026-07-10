@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Vault, Square, Atom, Zap, Fingerprint, Lock, Shield } from "lucide-react";
 import { GyroLogo } from "./gyro-logo";
 import { supabase } from "@/utils/supabase/client";
-import ReactMarkdown from "react-markdown";
+import { MarkdownRenderer } from "./markdown-renderer";
 interface ChatViewProps {
   onOpenSidebar: () => void;
   onOpenVault: () => void;
@@ -866,10 +866,8 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                           className="relative flex-1 space-y-4 select-text min-w-0 max-w-full group cursor-pointer md:cursor-auto"
                           onClick={(e) => handleMessageClick(e, m.id)}
                         >
-                          <div className="font-serif prose prose-invert prose-p:leading-[1.7] prose-p:text-[16px] prose-p:mb-5 prose-p:text-[#ececec] prose-li:my-2 prose-li:text-[#ececec] prose-ul:my-5 prose-headings:font-serif prose-headings:font-semibold prose-headings:text-[#ececec] prose-headings:tracking-normal prose-strong:text-[#ffffff] prose-strong:font-semibold text-[16px] max-w-3xl break-words tracking-[0.01em]">
-                            <ReactMarkdown>
-                              {m.text}
-                            </ReactMarkdown>
+                          <div className="w-full">
+                            <MarkdownRenderer content={m.text} />
                           </div>
 
                           {/* Actions row */}
