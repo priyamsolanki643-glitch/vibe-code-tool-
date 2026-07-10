@@ -32,24 +32,15 @@ function buildFinderPrompt(userMessage: string, activeTasks: any[]): string {
   const taskCompletionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return `You are Layer 17: The Finder (Intention & Routing Engine).
-Your job is to analyze the user's message and their context to decide their exact raw intention and assign them the perfect mentor.
+Your job is to analyze the user's message and their context to decide their exact raw intention. Do NOT try to solve their problem or act as a mentor. Just extract the intention.
 
 User Message: "${userMessage}"
 Context: Completed ${completedTasks}/${totalTasks} tasks today (${taskCompletionRate.toFixed(0)}%).
 
 Return EXACTLY this JSON structure, nothing else:
 {
-  "intent": "ACADEMIC_DOUBT | ESCAPISM_REQUEST | REWARD_SEEKING | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK",
-  "primary_soul": "SCHOLAR | VISIONARY | DRILL_SERGEANT | HACKER"
-}
-
-Routing Rules:
-- If the user is asking a subject/academic doubt (Physics, Math, etc.) -> SCHOLAR.
-- If the user wants a break/escapism (e.g., Netflix, tired) BUT task completion is < 50% -> DRILL_SERGEANT to discipline them.
-- If the user wants a break AND task completion is > 50% -> VISIONARY to reward their rest ("Rest is a weapon").
-- If the user wants a hack, shortcut, or productivity trick -> HACKER.
-- If the user is giving up, crying, or making excuses -> DRILL_SERGEANT.
-- If the user wants long-term planning, routine, or strategy -> VISIONARY.`;
+  "intent": "ACADEMIC_DOUBT | ESCAPISM_REQUEST | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK"
+}`;
 }
 
 // ─── ORACLE System Prompt Builder ────────────────────────────────────────────
@@ -315,11 +306,25 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
 
       // Phase 1: The Finder (Sensory Cortex)
       const finderResult = await runFinder(message, activeTasks);
-      let analysis = { primary_soul: finderResult.primary_soul, intent: finderResult.intent };
+      const intent = finderResult.intent || 'CASUAL_CHAT';
       
-      // Phase 2: The 16-Layer Prefrontal Cortex already ran (omniDataBlock generated).
-      // We trust the Finder's soul selection because it already factored in the user's task completion context.
-      // The Oracle will use this soul + the OmniDataBlock to generate the final response.
+      // Phase 2: Mentor Selection (Math + Intent)
+      let chosenSoul: SoulId = 'VISIONARY';
+      
+      if (intent === 'ACADEMIC_DOUBT') {
+        chosenSoul = 'SCHOLAR';
+      } else if (intent === 'PRODUCTIVITY_HACK') {
+        chosenSoul = 'HACKER';
+      } else if (intent === 'ESCAPISM_REQUEST' || intent === 'MOTIVATION_CRISIS') {
+        if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
+        else chosenSoul = 'VISIONARY';
+      } else {
+        if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
+        else if (engineTone === 'mentor') chosenSoul = 'SCHOLAR';
+        else chosenSoul = 'VISIONARY';
+      }
+      
+      let analysis = { primary_soul: chosenSoul, intent: intent };
 
 
       // ── Intercept for Consistency Onboarding ─────────────────────────────────────
@@ -551,7 +556,15 @@ oracleRoutes.post('/chat', zValidator('json', oracleSchema), async (c) => {
 
   try {
     const finderResult = await runFinder(message, []);
-    const analysis = { primary_soul: finderResult.primary_soul, intent: finderResult.intent };
+    const intent = finderResult.intent || 'CASUAL_CHAT';
+    
+    // Fallback mentor logic without OmniEngine context
+    let chosenSoul: SoulId = 'VISIONARY';
+    if (intent === 'ACADEMIC_DOUBT') chosenSoul = 'SCHOLAR';
+    else if (intent === 'PRODUCTIVITY_HACK') chosenSoul = 'HACKER';
+    else if (intent === 'MOTIVATION_CRISIS') chosenSoul = 'DRILL_SERGEANT';
+    
+    const analysis = { primary_soul: chosenSoul, intent: intent };
     const systemPrompt = buildOracleSystemPrompt(analysis, studentContext);
     const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
 
