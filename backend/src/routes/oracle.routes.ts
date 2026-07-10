@@ -25,38 +25,31 @@ const oracleSchema = z.object({
   studentContext: z.string().optional().default(''),
 });
 
-// ─── Classifier Prompt ───────────────────────────────────────────────────────
-function buildClassifierPrompt(userMessage: string): string {
-  return `You are an expert psychologist and student behavior analyst.
-Analyze the following student message and return a JSON object ONLY — no markdown, no explanation.
+// ─── Phase 1: Layer 17 Finder Prompt ───────────────────────────────────────────
+function buildFinderPrompt(userMessage: string, activeTasks: any[]): string {
+  const completedTasks = activeTasks.filter(t => t.status === 'completed').length;
+  const totalTasks = activeTasks.length;
+  const taskCompletionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-Student message: "${userMessage}"
+  return `You are Layer 17: The Finder (Intention & Routing Engine).
+Your job is to analyze the user's message and their context to decide their exact raw intention and assign them the perfect mentor.
 
-Return this exact JSON structure:
+User Message: "${userMessage}"
+Context: Completed ${completedTasks}/${totalTasks} tasks today (${taskCompletionRate.toFixed(0)}%).
+
+Return EXACTLY this JSON structure, nothing else:
 {
-  "topic": "STUDY | BUSINESS | MOTIVATION | LIFE | HACK | MIXED",
-  "emotion": "ANXIOUS | DEMOTIVATED | CONFUSED | ENERGIZED | PANIC | NEUTRAL | HAPPY | FRUSTRATED",
-  "need": "KNOWLEDGE | PUSH | CALM | STRATEGY | QUICK_TIP | JUST_LISTEN | TOUGH_LOVE",
-  "urgency": "HIGH | MEDIUM | LOW",
-  "primary_soul": "VISIONARY | SCHOLAR | HACKER | DRILL_SERGEANT",
-  "supporting_souls": ["VISIONARY", "SCHOLAR", "HACKER", "DRILL_SERGEANT"],
-  "tone": "AGGRESSIVE | CALM | STRUCTURED | ENERGETIC | WARM | DIRECT | EMPATHETIC"
+  "intent": "ACADEMIC_DOUBT | ESCAPISM_REQUEST | REWARD_SEEKING | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK",
+  "primary_soul": "SCHOLAR | VISIONARY | DRILL_SERGEANT | HACKER"
 }
 
-Rules for soul selection:
-- VISIONARY (Elon Musk): Goals, strategy, business, big-picture thinking, time management, engineering, procrastination, excuses, lack of discipline
-- SCHOLAR (JEE/NEET Toppers): Exam prep, concepts, numericals, subject doubts, study schedules
-- HACKER (GIGL): Quick tips, life hacks, shortcuts, skill-building, productivity tricks
-- DRILL_SERGEANT (Hesfy): When student is giving up, quitting, demotivated, making excuses, slacking off, or crying without action
-
-Emotion → Tone rules:
-- PANIC → CALM + STRUCTURED (never aggressive when panicking)
-- DEMOTIVATED → aggressive TOUGH_LOVE from VISIONARY
-- ANXIOUS → WARM + CALM from SCHOLAR or VISIONARY
-- ENERGIZED → match energy, PUSH harder
-- CONFUSED → STRUCTURED breakdown
-- HAPPY → ENERGETIC, celebrate and redirect to next milestone
-- FRUSTRATED → EMPATHETIC first, then DIRECT`;
+Routing Rules:
+- If the user is asking a subject/academic doubt (Physics, Math, etc.) -> SCHOLAR.
+- If the user wants a break/escapism (e.g., Netflix, tired) BUT task completion is < 50% -> DRILL_SERGEANT to discipline them.
+- If the user wants a break AND task completion is > 50% -> VISIONARY to reward their rest ("Rest is a weapon").
+- If the user wants a hack, shortcut, or productivity trick -> HACKER.
+- If the user is giving up, crying, or making excuses -> DRILL_SERGEANT.
+- If the user wants long-term planning, routine, or strategy -> VISIONARY.`;
 }
 
 // ─── ORACLE System Prompt Builder ────────────────────────────────────────────
@@ -73,9 +66,7 @@ function buildOracleSystemPrompt(
   const supportingBrain = supportingSoul ? getBrainForSoul(supportingSoul) : '';
 
   const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
-  const emotion = analysis.emotion;
-  const need = analysis.need;
-  const tone = analysis.tone;
+  const intent = analysis.intent || 'CASUAL_CHAT';
 
   return `${primaryMeta.emoji} You are ORACLE. You are NOT an AI assistant.
 
@@ -95,26 +86,23 @@ ${supportingBrain ? `<supporting_wisdom>\n${supportingBrain.slice(0, 1200)}\n</s
 📍 STUDENT PROFILE:
 ${studentContext || 'General student, no specific profile.'}
 
-🎯 DETECTED STATE: ${emotion} | NEED: ${need} | TONE: ${tone}
+🎯 DETECTED INTENT: ${intent}
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## MENTAL STATE RESPONSE PROTOCOL (read carefully, follow exactly):
 
-### 🔴 IF emotion = LAZY (giving excuses, no real reason):
+### 🔴 IF intent = ESCAPISM_REQUEST (task completion < 50%):
 This is a student who CAN but WON'T. They're choosing comfort. No sympathy here.
-- You ARE Hesfy 🐺. Speak directly to them. NEVER say "Hesfy kehta hai" or "Hesfy would say".
-- Say exactly this directly to them: "Baith aaram se, chill maar, logo ko grow hote hue dekh, unki khushi mein khush raho..."
-- Hit them with the reality: what is actually happening to them while they delay.
-- Be direct, even a little sarcastic — like a friend who's tired of watching you self-sabotage.
-- Do NOT be mean. Be the friend who cares enough to be brutal.
+- You ARE Hesfy 🐺. Speak directly to them. NEVER say "Hesfy kehta hai".
+- Say exactly this: "Baith aaram se, chill maar, logo ko grow hote hue dekh..."
+- Hit them with the reality of what happens when they delay. Be brutal but caring.
 
-### 🟡 IF emotion = DEMOTIVATED (quitting, giving up):
+### 🟡 IF intent = MOTIVATION_CRISIS (quitting, giving up):
 This student has tried and feels defeated. They need FIRE, not sympathy.
-- Full Hesfy mode (First Person). Acknowledge the pain, then immediately snap them out.
-- Use the "coal mine mard" philosophy, the "you born gareeb so you already lost everything" line. Speak as if these are your own beliefs.
+- Use the "coal mine mard" philosophy, the "you born gareeb so you already lost everything" line.
 - Redirect to the ONLY cure: action. Even one small action.
 
-### 🔵 IF emotion = ANXIOUS (pressure, stress, overwhelmed, burnt out):
+### 🔵 IF intent = ACADEMIC_DOUBT (pressure, stress, study doubt):
 This student is TRYING but breaking. They need a friend, not a drill sergeant.
 - Do NOT use Hesfy here. Use Visionary (Elon/calm strategic mode).
 - First 2-3 lines: genuinely acknowledge what they're feeling. "Yaar sun, sach mein bahut kuch chal raha hai tere saath..."
@@ -122,10 +110,10 @@ This student is TRYING but breaking. They need a friend, not a drill sergeant.
 - Be warm, be real, be the dost who picks them up.
 - End with something they can do in the NEXT 5 MINUTES.
 
-### 🟢 IF emotion = ENERGIZED / NEUTRAL:
-- Match energy and push harder.
-- Give them the strategy, the next milestone, the edge.
-- Be the smart friend who knows the shortcut nobody else does.
+### 🟢 IF intent = STRATEGY_NEED or PRODUCTIVITY_HACK:
+- Match their energy and push harder.
+- Give them the exact strategy, schedule, or shortcut they need.
+- Be the smart mentor who knows the trick nobody else does.
 
 ---
 
@@ -189,8 +177,8 @@ Your goal is to make the student feel that the explanation was written exclusive
 CRITICAL: Complete every thought. Never cut off mid-sentence.`;
 }
 
-// ─── Classifier AI Call ──────────────────────────────────────────────────────
-async function classifyMessage(message: string): Promise<any> {
+// ─── Phase 1: Finder AI Call ───────────────────────────────────────────────────
+async function runFinder(message: string, activeTasks: any[]): Promise<any> {
   try {
     const { GoogleGenAI } = await import('@google/genai');
     const keys = (process.env.GEMINI_API_KEY || process.env.AI_PROVIDER_KEY || '')
@@ -201,55 +189,20 @@ async function classifyMessage(message: string): Promise<any> {
     const client = new GoogleGenAI({ apiKey: keys[0] });
     const resp = await client.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: [{ role: 'user', parts: [{ text: buildClassifierPrompt(message) }] }],
+      contents: [{ role: 'user', parts: [{ text: buildFinderPrompt(message, activeTasks) }] }],
       config: { maxOutputTokens: 300, temperature: 0.1 }
     });
 
     const raw = resp.text?.trim() || '';
-    // Strip markdown code fences if present
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     return JSON.parse(cleaned);
   } catch (e) {
-    console.warn('[ORACLE] Classifier failed, using defaults:', e);
-    // Intelligent fallback based on message keywords
+    console.warn('[ORACLE] Finder failed, using safe fallback:', e);
     return {
-      topic: 'MIXED',
-      emotion: 'NEUTRAL',
-      need: 'KNOWLEDGE',
-      urgency: 'MEDIUM',
-      primary_soul: 'VISIONARY',
-      supporting_souls: ['SCHOLAR'],
-      tone: 'DIRECT'
+      intent: 'ACADEMIC_DOUBT',
+      primary_soul: 'VISIONARY'
     };
   }
-}
-
-// ─── Smart Mental State Detector + Soul Picker (no AI, ~0ms) ─────────────────
-function pickSoulFromKeywords(message: string): { primary_soul: SoulId; supporting_souls: SoulId[]; emotion: string; tone: string; need: string; urgency: string } {
-  const lower = message.toLowerCase();
-
-  // Lazy excuse — CAN but WON'T. Choosing comfort.
-  const isExcuse = /mann\s*nahi|maan\s*nahi|karne\s*ka\s*mann|padh\s*nahi|kal\s*se\s*pakka|kal\s*se\s*start|kal\s*karlunga|kal\s*karunga|thoda\s*baad|baad\s*mein\s*kar|aaj\s*nahi|aaj\s*chod|procrastinat|distract|netflix|reel|instagram|scroll|vella|timepass|game\s*khel|poori\s*life\s*aise|chill\s*maar|kya\s*farak|kya\s*hoga|chod\s*yaar|nahi\s*karna|na\s*ho\s*payega|nahi\s*ho\s*payega/i.test(lower);
-
-  // Genuinely struggling — WANTS to but can't (pressure, burnout, pain)
-  const isStruggling = /thak\s*gaya|thak\s*gayi|bahut\s*thaka|bahut\s*thaki|pressure\s*mein|pressure\s*hai|bohot\s*pressure|rona\s*aa\s*raha|ro\s*raha|rone\s*laga|aankhein\s*bhar|kuch\s*samajh\s*nahi|kuch\s*achha\s*nahi|akela|lonely|koi\s*nahi|depressed|depression|anxiety|dar\s*lag|darr\s*hai|ghabra|scared|overwhelm|itna\s*kuch|handle\s*nahi|bohot\s*kuch|bahut\s*kuch|kaise\s*karun|kuch\s*nahi\s*ho\s*raha|fail\s*ho\s*gaya|fail\s*ho\s*gayi|result\s*kharab|parents\s*upset|family\s*pressure/i.test(lower);
-
-  // Quitting — giving up entirely
-  const isQuitting = /give\s*up|quit|chhod\s*raha|chod\s*diya|bas\s*karo|nahi\s*hoga\s*mujhse|mujhse\s*nahi\s*hoga|haar\s*gaya|haar\s*gayi|hopeless|useless|bekar\s*hoon|kuch\s*nahi\s*banunga|nikal\s*leta|drop\s*kar|sab\s*futile|sab\s*waste|bandh\s*kar\s*diya|khatam\s*karna/i.test(lower);
-
-  // Study / Academics
-  const isStudy = /jee|neet|exam|physics|chemistry|maths|math|biology|chapter|concept|numericals|syllabus|ncert|board|topper|rank|percentile|mock\s*test|coaching|formula|derivation|integration|organic|inorganic|pcm|pcb|12th|11th|entrance|preparation/i.test(lower);
-
-  // Hacks / Productivity
-  const isHack = /shortcut|hack|tip\s*trick|productivity|skill|kaise\s*kare|jugaad|life\s*hack|efficient|optimize|time\s*save|smart\s*work|smarter/i.test(lower);
-
-  // Priority: Quitting > Struggling > Excuse > Study > Hack > Default
-  if (isQuitting) return { primary_soul: 'DRILL_SERGEANT', supporting_souls: ['VISIONARY'], emotion: 'DEMOTIVATED', tone: 'AGGRESSIVE', need: 'TOUGH_LOVE', urgency: 'HIGH' };
-  if (isStruggling) return { primary_soul: 'VISIONARY', supporting_souls: ['DRILL_SERGEANT'], emotion: 'ANXIOUS', tone: 'EMPATHETIC', need: 'CALM_THEN_PUSH', urgency: 'HIGH' };
-  if (isExcuse) return { primary_soul: 'DRILL_SERGEANT', supporting_souls: ['VISIONARY'], emotion: 'LAZY', tone: 'BLUNT', need: 'TOUGH_LOVE', urgency: 'MEDIUM' };
-  if (isStudy) return { primary_soul: 'SCHOLAR', supporting_souls: ['VISIONARY'], emotion: 'FOCUSED', tone: 'STRUCTURED', need: 'KNOWLEDGE', urgency: 'MEDIUM' };
-  if (isHack) return { primary_soul: 'HACKER', supporting_souls: ['VISIONARY'], emotion: 'ENERGIZED', tone: 'ENERGETIC', need: 'QUICK_TIP', urgency: 'LOW' };
-  return { primary_soul: 'VISIONARY', supporting_souls: ['HACKER'], emotion: 'NEUTRAL', tone: 'DIRECT', need: 'STRATEGY', urgency: 'MEDIUM' };
 }
 
 
@@ -360,30 +313,13 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         console.error('[ORACLE] OmniPipeline failed, skipping:', err);
       }
 
-      // Fast keyword-based soul selection — ZERO extra API calls
-      let analysis = pickSoulFromKeywords(message);
-
-      // ENGINE OVERRIDE: If the keyword didn't detect an extreme state, let the 16-layer engine dictate the soul.
-      const isExtremeState = ['DEMOTIVATED', 'ANXIOUS', 'LAZY'].includes(analysis.emotion);
-      if (engineTone && !isExtremeState) {
-        if (engineTone === 'peer') {
-          analysis.primary_soul = 'VISIONARY';
-          analysis.supporting_souls = ['HACKER'];
-          analysis.tone = 'DIRECT';
-        } else if (engineTone === 'mentor') {
-          analysis.primary_soul = 'SCHOLAR';
-          analysis.supporting_souls = ['VISIONARY'];
-          analysis.tone = 'STRUCTURED';
-        } else if (engineTone === 'accountability_partner') {
-          analysis.primary_soul = 'DRILL_SERGEANT';
-          analysis.supporting_souls = ['VISIONARY'];
-          analysis.tone = 'AGGRESSIVE';
-        } else if (engineTone === 'crisis_support') {
-          analysis.primary_soul = 'VISIONARY';
-          analysis.supporting_souls = ['SCHOLAR'];
-          analysis.tone = 'EMPATHETIC';
-        }
-      }
+      // Phase 1: The Finder (Sensory Cortex)
+      const finderResult = await runFinder(message, activeTasks);
+      let analysis = { primary_soul: finderResult.primary_soul, intent: finderResult.intent };
+      
+      // Phase 2: The 16-Layer Prefrontal Cortex already ran (omniDataBlock generated).
+      // We trust the Finder's soul selection because it already factored in the user's task completion context.
+      // The Oracle will use this soul + the OmniDataBlock to generate the final response.
 
 
       // ── Intercept for Consistency Onboarding ─────────────────────────────────────
