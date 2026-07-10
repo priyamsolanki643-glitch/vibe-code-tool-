@@ -38,12 +38,13 @@ User Message: "${userMessage}"
 Context: Completed ${completedTasks}/${totalTasks} tasks today (${taskCompletionRate.toFixed(0)}%).
 
 Return EXACTLY this JSON structure, nothing else:
-Return EXACTLY this JSON structure, nothing else:
 {
-  "intent": "ACADEMIC_DOUBT | LAZY_ESCAPISM | ANXIOUS_ESCAPISM | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK"
+  "intent": "ACADEMIC_DOUBT | LAZY_ESCAPISM | ANXIOUS_ESCAPISM | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK",
+  "psychological_state": "OVERWHELMED | BURNT_OUT | ANXIOUS | LAZY | DRIVEN | CALM | DEFENSIVE"
 }
 - Use LAZY_ESCAPISM if they just want to chill, watch Netflix, or are distracted without a good reason.
-- Use ANXIOUS_ESCAPISM if they are avoiding work because they are overwhelmed, stressed, or fearful of failure.`;
+- Use ANXIOUS_ESCAPISM if they are avoiding work because they are overwhelmed, stressed, or fearful of failure.
+- CAREFULLY detect their psychological_state. A kid might say "I have a test tomorrow" but be secretly TERRIFIED (ANXIOUS) or just asking for a plan (CALM).`;
 }
 
 // ─── ORACLE System Prompt Builder ────────────────────────────────────────────
@@ -61,6 +62,7 @@ function buildOracleSystemPrompt(
 
   const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
   const intent = analysis.intent || 'CASUAL_CHAT';
+  const psychoState = analysis.psychological_state || 'CALM';
   const currentTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
 
   return `${primaryMeta.emoji} You are ORACLE. You are NOT an AI assistant.
@@ -85,11 +87,18 @@ ${studentContext || 'General student, no specific profile.'}
 - Acknowledge the time naturally if relevant (e.g., "Raat ke 2 baj rahe hain, abhi bhi jag raha hai", "Subah ke 6 baje hain"). Do not overdo it.
 
 🎯 DETECTED INTENT: ${intent}
+🧠 DETECTED PSYCHOLOGICAL STATE: ${psychoState}
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## MENTAL STATE RESPONSE PROTOCOL (read carefully, follow exactly):
+## MENTAL STATE RESPONSE PROTOCOL (CRITICAL DIRECTIVES):
 
-### 🔴 IF intent = LAZY_ESCAPISM (Netflix, games, distractions, giving excuses):
+### 🚨 PSYCHOLOGICAL OVERRIDE (Read First):
+If DETECTED PSYCHOLOGICAL STATE is OVERWHELMED, BURNT_OUT, or ANXIOUS:
+- **ABSOLUTELY NO YELLING.** Do not use aggressive Drill Sergeant tones.
+- Validate their pressure. Tell them "I see the weight on you, it's real."
+- Give them ONE zero-pressure micro-step to start moving. Nothing more.
+
+### 🔴 IF intent = LAZY_ESCAPISM or state = LAZY/DEFENSIVE:
 This is a student who CAN but WON'T. They're choosing comfort. No sympathy here.
 - Speak directly to them. Be brutal but caring. Give them a massive reality check.
 - Hit them with the reality of what happens when they delay.
@@ -327,18 +336,20 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
       const finderResult = await runFinder(message, activeTasks);
       const intent = finderResult.intent || 'CASUAL_CHAT';
       
-      // Phase 2: Mentor Selection (Math + Intent)
+      // Phase 2: Mentor Selection (Math + Intent + Psycho State)
       let chosenSoul: SoulId = 'VISIONARY';
+      const psychoState = finderResult.psychological_state || 'CALM';
+      const isPressureState = ['OVERWHELMED', 'BURNT_OUT', 'ANXIOUS'].includes(psychoState);
       
-      if (intent === 'ACADEMIC_DOUBT') {
+      if (isPressureState || intent === 'ANXIOUS_ESCAPISM') {
+        chosenSoul = 'VISIONARY'; // Never yell at an anxious student
+      } else if (intent === 'ACADEMIC_DOUBT') {
         chosenSoul = 'SCHOLAR';
       } else if (intent === 'PRODUCTIVITY_HACK') {
         chosenSoul = 'HACKER';
-      } else if (intent === 'LAZY_ESCAPISM' || intent === 'MOTIVATION_CRISIS') {
+      } else if (intent === 'LAZY_ESCAPISM' || intent === 'MOTIVATION_CRISIS' || psychoState === 'LAZY') {
         if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
         else chosenSoul = 'VISIONARY';
-      } else if (intent === 'ANXIOUS_ESCAPISM') {
-        chosenSoul = 'VISIONARY'; // Never yell at an anxious student
       } else {
         if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
         else if (engineTone === 'mentor') chosenSoul = 'SCHOLAR';
