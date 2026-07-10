@@ -10,6 +10,7 @@ import {
 } from '../mentors/brain-loader';
 import { DbService } from '../services/db.service';
 import { runOmniPipeline, OmniPipelineInput } from '../engine/OmniPipeline';
+import { MemoryService } from '../services/memory.service';
 
 export const oracleRoutes = new Hono<{ Variables: { userId: string; userLanguage: string } }>();
 
@@ -50,7 +51,8 @@ Return EXACTLY this JSON structure, nothing else:
 // ─── ORACLE System Prompt Builder ────────────────────────────────────────────
 function buildOracleSystemPrompt(
   analysis: any,
-  studentContext: string
+  studentContext: string,
+  historicalContext: string = ''
 ): string {
   // Load all relevant brains
   const primaryBrain = getBrainForSoul(analysis.primary_soul as SoulId);
@@ -80,9 +82,10 @@ ${primaryBrain}
 ${supportingBrain ? `<supporting_wisdom>\n${supportingBrain.slice(0, 1200)}\n</supporting_wisdom>` : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 STUDENT PROFILE:
+📍 STUDENT PROFILE & CONTEXT:
 ${studentContext || 'General student, no specific profile.'}
 
+${historicalContext ? `🕰️ HISTORICAL MEMORY (Use this to show you remember their past!):\n${historicalContext}\n` : ''}
 🕒 CURRENT SYSTEM TIME (IST): ${currentTime}
 - Acknowledge the time naturally if relevant (e.g., "Raat ke 2 baj rahe hain, abhi bhi jag raha hai", "Subah ke 6 baje hain"). Do not overdo it.
 
@@ -318,19 +321,29 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
 
       let omniDataBlock = "";
       let engineTone: string | null = null;
-      try {
-        const omniResult = await runOmniPipeline(omniInput);
-        const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
-        engineTone = toneVector.primaryTone;
-        omniDataBlock = `[16-LAYER REAL-TIME ENGINE OUTPUT]
+      
+      // PILLAR 1: Episodic Vector Memory (Fetch past memories instantly)
+      const historicalMemories = await MemoryService.searchMemories(userId, message, 2);
+      const historicalContext = historicalMemories.join('\n\n');
+
+      // PILLAR 2: Asynchronous Edge Pipeline (Decouple OmniEngine for zero lag)
+      Promise.resolve().then(async () => {
+        try {
+          const omniResult = await runOmniPipeline(omniInput);
+          const { toneVector, chaosState, userSnapshot } = omniResult.omniContext;
+          engineTone = toneVector.primaryTone;
+          omniDataBlock = `[16-LAYER REAL-TIME ENGINE OUTPUT]
 - Tone Directive: ${JSON.stringify(toneVector)}
 - Chaos Volatility: ${(chaosState.currentVolatilityScore * 100).toFixed(0)}%
 - Student Streak: ${userSnapshot.streakDays} days
 - Consistency Score: ${userSnapshot.consistencyScore}/100
 - Active Path: ${userSnapshot.activePath}`;
-      } catch (err) {
-        console.error('[ORACLE] OmniPipeline failed, skipping:', err);
-      }
+          // Background memory save
+          await MemoryService.saveMemory(userId, message);
+        } catch (err) {
+          console.error('[ORACLE] Background Pipeline failed:', err);
+        }
+      });
 
       // Phase 1: The Finder (Sensory Cortex)
       const finderResult = await runFinder(message, activeTasks);
@@ -491,7 +504,7 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
       // (OmniPipeline logic was moved upstream)
 
       // Step 3: Build Oracle system prompt and merge with 16-layer output
-      const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext);
+      const oraclePrompt = buildOracleSystemPrompt(analysis, studentContext, historicalContext);
       const masterSystemPrompt = omniDataBlock
         ? `${omniDataBlock}\n\n${oraclePrompt}`
         : oraclePrompt;
