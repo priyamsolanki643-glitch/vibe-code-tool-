@@ -38,9 +38,12 @@ User Message: "${userMessage}"
 Context: Completed ${completedTasks}/${totalTasks} tasks today (${taskCompletionRate.toFixed(0)}%).
 
 Return EXACTLY this JSON structure, nothing else:
+Return EXACTLY this JSON structure, nothing else:
 {
-  "intent": "ACADEMIC_DOUBT | ESCAPISM_REQUEST | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK"
-}`;
+  "intent": "ACADEMIC_DOUBT | LAZY_ESCAPISM | ANXIOUS_ESCAPISM | STRATEGY_NEED | MOTIVATION_CRISIS | CASUAL_CHAT | PRODUCTIVITY_HACK"
+}
+- Use LAZY_ESCAPISM if they just want to chill, watch Netflix, or are distracted without a good reason.
+- Use ANXIOUS_ESCAPISM if they are avoiding work because they are overwhelmed, stressed, or fearful of failure.`;
 }
 
 // ─── ORACLE System Prompt Builder ────────────────────────────────────────────
@@ -58,6 +61,7 @@ function buildOracleSystemPrompt(
 
   const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
   const intent = analysis.intent || 'CASUAL_CHAT';
+  const currentTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
 
   return `${primaryMeta.emoji} You are ORACLE. You are NOT an AI assistant.
 
@@ -77,16 +81,24 @@ ${supportingBrain ? `<supporting_wisdom>\n${supportingBrain.slice(0, 1200)}\n</s
 📍 STUDENT PROFILE:
 ${studentContext || 'General student, no specific profile.'}
 
+🕒 CURRENT SYSTEM TIME (IST): ${currentTime}
+- Acknowledge the time naturally if relevant (e.g., "Raat ke 2 baj rahe hain, abhi bhi jag raha hai", "Subah ke 6 baje hain"). Do not overdo it.
+
 🎯 DETECTED INTENT: ${intent}
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## MENTAL STATE RESPONSE PROTOCOL (read carefully, follow exactly):
 
-### 🔴 IF intent = ESCAPISM_REQUEST (task completion < 50%):
+### 🔴 IF intent = LAZY_ESCAPISM (Netflix, games, distractions, giving excuses):
 This is a student who CAN but WON'T. They're choosing comfort. No sympathy here.
-- You ARE Hesfy 🐺. Speak directly to them. NEVER say "Hesfy kehta hai".
-- Say exactly this: "Baith aaram se, chill maar, logo ko grow hote hue dekh..."
-- Hit them with the reality of what happens when they delay. Be brutal but caring.
+- Speak directly to them. Be brutal but caring. Give them a massive reality check.
+- Hit them with the reality of what happens when they delay.
+
+### 🟣 IF intent = ANXIOUS_ESCAPISM (Burnt out, overwhelmed, fearful of failure):
+This student is procrastinating because they are scared or burnt out, NOT because they are lazy.
+- DO NOT yell at them. Be warm and strategic.
+- Acknowledge their pressure. Tell them it's normal.
+- Give them a tiny, zero-pressure micro-step to just start moving again.
 
 ### 🟡 IF intent = MOTIVATION_CRISIS (quitting, giving up):
 This student has tried and feels defeated. They need FIRE, not sympathy.
@@ -138,8 +150,8 @@ Your responses must blend a natural, human mentor voice with hyper-professional 
 
 4. THE "X-FACTOR" (MANDATORY WOW FACTOR):
 Every response MUST have one unique, mind-blowing element that makes the user think "How does this AI know this?". Google/ChatGPT cannot do this.
-- MICRO-SPRINTS: End deep strategies with a bolded blockquote asking for a tiny action right now. (e.g. `> **[5-MIN SPRINT]**: Write down the 3 hardest formulas. Tell me when done.`)
-- ASCII PROGRESS: Use simple ASCII bars `[██████░░░░] 60%` to visually represent their consistency or task completion if relevant.
+- MICRO-SPRINTS: End deep strategies with a bolded blockquote asking for a tiny action right now. (e.g. '> **[5-MIN SPRINT]**: Write down the 3 hardest formulas. Tell me when done.')
+- ASCII PROGRESS: Use simple ASCII bars '[██████░░░░] 60%' to visually represent their consistency or task completion if relevant.
 - MENTAL MODELS: Don't just give generic advice; give named psychological/strategic models (e.g., "The Zeigarnik Effect", "The 2-Minute Rule", "Naval's Leverage").
 
 5. UNIVERSAL RULES:
@@ -322,9 +334,11 @@ oracleRoutes.post('/chat/stream', zValidator('json', oracleSchema), async (c) =>
         chosenSoul = 'SCHOLAR';
       } else if (intent === 'PRODUCTIVITY_HACK') {
         chosenSoul = 'HACKER';
-      } else if (intent === 'ESCAPISM_REQUEST' || intent === 'MOTIVATION_CRISIS') {
+      } else if (intent === 'LAZY_ESCAPISM' || intent === 'MOTIVATION_CRISIS') {
         if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
         else chosenSoul = 'VISIONARY';
+      } else if (intent === 'ANXIOUS_ESCAPISM') {
+        chosenSoul = 'VISIONARY'; // Never yell at an anxious student
       } else {
         if (engineTone === 'commander') chosenSoul = 'DRILL_SERGEANT';
         else if (engineTone === 'mentor') chosenSoul = 'SCHOLAR';
@@ -569,7 +583,7 @@ oracleRoutes.post('/chat', zValidator('json', oracleSchema), async (c) => {
     let chosenSoul: SoulId = 'VISIONARY';
     if (intent === 'ACADEMIC_DOUBT') chosenSoul = 'SCHOLAR';
     else if (intent === 'PRODUCTIVITY_HACK') chosenSoul = 'HACKER';
-    else if (intent === 'MOTIVATION_CRISIS') chosenSoul = 'DRILL_SERGEANT';
+    else if (intent === 'MOTIVATION_CRISIS' || intent === 'LAZY_ESCAPISM') chosenSoul = 'DRILL_SERGEANT';
     
     const analysis = { primary_soul: chosenSoul, intent: intent };
     const systemPrompt = buildOracleSystemPrompt(analysis, studentContext);
