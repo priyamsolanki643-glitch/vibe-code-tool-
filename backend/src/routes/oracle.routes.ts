@@ -445,8 +445,8 @@ For example: {"response_text": "{\\"missionName\\":\\"My Goal\\", \\"lockedPath\
           soulName: primaryMeta.name,
           emoji: primaryMeta.emoji,
           color: primaryMeta.color,
-          emotion: analysis.emotion,
-          tone: analysis.tone,
+          emotion: analysis.intent,
+          tone: engineTone || 'DIRECT',
           thread_id: currentThreadId
         })
       });
@@ -550,7 +550,8 @@ oracleRoutes.post('/chat', zValidator('json', oracleSchema), async (c) => {
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   try {
-    const analysis = await classifyMessage(message);
+    const finderResult = await runFinder(message, []);
+    const analysis = { primary_soul: finderResult.primary_soul, intent: finderResult.intent };
     const systemPrompt = buildOracleSystemPrompt(analysis, studentContext);
     const primaryMeta = SOUL_METADATA[analysis.primary_soul as SoulId] || SOUL_METADATA['VISIONARY'];
 
@@ -580,8 +581,8 @@ oracleRoutes.post('/chat', zValidator('json', oracleSchema), async (c) => {
       soulName: primaryMeta.name,
       emoji: primaryMeta.emoji,
       color: primaryMeta.color,
-      emotion: analysis.emotion,
-      tone: analysis.tone
+      emotion: analysis.intent,
+      tone: 'DIRECT'
     });
 
   } catch (err: any) {
