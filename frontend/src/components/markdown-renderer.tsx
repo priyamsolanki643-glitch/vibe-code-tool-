@@ -8,7 +8,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <div className="markdown-body font-sans text-[14.5px] leading-relaxed text-[#d4d4d8]">
+    <div className="markdown-body font-sans text-[14.5px] leading-relaxed text-[#d4d4d8] overflow-hidden break-words max-w-full">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

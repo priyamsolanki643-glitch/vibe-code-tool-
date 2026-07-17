@@ -1014,7 +1014,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
 
               {/* Attachment Menu Popover */}
               {isAttachMenuOpen && (
-                <div className="absolute bottom-full left-0 mb-4 bg-[#1a1b1e] rounded-[24px] p-2 flex flex-col shadow-2xl min-w-[160px] animate-scale-in origin-bottom-left z-50 overflow-hidden">
+                <div className="absolute bottom-full left-0 mb-4 bg-[#1a1b1e] rounded-[24px] p-2 flex flex-col shadow-2xl min-w-[160px] animate-scale-in origin-bottom-left z-50 overflow-hidden max-h-[50vh] overflow-y-auto">
                   <div className="flex flex-col gap-1 animate-fade-in">
                     <button 
                       onClick={() => { cameraInputRef.current?.click(); setIsAttachMenuOpen(false); }}
@@ -1093,7 +1093,11 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
                   <textarea
                     ref={inputRef}
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    }}
                     onFocus={() => setIsInputFocused(true)}
                     onBlur={() => setIsInputFocused(false)}
                     onKeyDown={handleKeyDown}

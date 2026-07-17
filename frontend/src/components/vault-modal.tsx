@@ -278,14 +278,14 @@ export function VaultModal({ onClose }: VaultModalProps) {
 
           {/* Scrollable Tabs Wrapper with subtle indicator fade */}
           <div className="relative -mx-4 px-4 overflow-x-auto no-scrollbar pb-1">
-            <div className="flex gap-1.5 md:gap-2">
+            <div className="flex gap-1.5 md:gap-2 min-w-max">
               {TABS.map(tab => {
                 const TabIcon = tab.icon;
                 return (
                   <button 
                     key={tab.id}
                     onClick={() => switchTab(tab.id)}
-                    className={`px-4 py-2 rounded-xl text-[13px] font-medium flex items-center gap-2 transition-all duration-300 whitespace-nowrap active:scale-[0.97] ${
+                    className={`px-4 py-2 rounded-xl text-[13px] font-medium flex items-center gap-2 transition-all duration-300 whitespace-nowrap shrink-0 active:scale-[0.97] ${
                       activeTab === tab.id 
                         ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.15)]' 
                         : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.05] border border-transparent'
@@ -757,7 +757,7 @@ function TabDebt({ missionData }: { missionData?: MissionData }) {
 
 const Dial = ({ title, value, sub, color, strokeOffset }: { title: string, value: string, sub: string, color: string, strokeOffset: string }) => (
   <div className="flex flex-col items-center justify-center">
-    <div className="relative size-16 sm:size-28 md:size-36 mb-3">
+    <div className="relative size-20 sm:size-28 md:size-36 mb-3">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
         <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="4" />
         <circle 
@@ -767,8 +767,8 @@ const Dial = ({ title, value, sub, color, strokeOffset }: { title: string, value
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm sm:text-xl md:text-2xl font-black text-white leading-none mb-0.5">{value}</span>
-        <span className="text-[7px] sm:text-[8px] font-mono text-[#71717a] tracking-wider font-bold">{sub}</span>
+        <span className="text-base sm:text-xl md:text-2xl font-black text-white leading-none mb-0.5">{value}</span>
+        <span className="text-[8px] sm:text-[9px] font-mono text-[#71717a] tracking-wider font-bold">{sub}</span>
       </div>
     </div>
     <div className="text-[8px] sm:text-[9px] font-mono text-[#52525b] tracking-[0.12em] uppercase text-center font-semibold leading-none">{title}</div>
