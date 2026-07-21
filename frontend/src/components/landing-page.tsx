@@ -208,8 +208,8 @@ export function LandingPage({ onLock, hasSession, onAnonymous }: LandingPageProp
 
           {/* Subtext */}
           <p className="text-[#a1a1aa] text-[15px] sm:text-[17px] leading-snug max-w-[90%] sm:max-w-md mx-auto mb-10 font-sans font-normal opacity-90 pointer-events-none">
-            Built for achievers, not procrastinators.<br />
-            <span className="text-white/70 font-medium">No fluff. No excuses. No mercy.</span>
+            Feel the flow, prompt the dream.<br />
+            <span className="text-white/70 font-medium">You bring the vision, we write the reality.</span>
           </p>
 
           {/* Centered CTA Row */}
