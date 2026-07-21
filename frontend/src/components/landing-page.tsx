@@ -201,7 +201,7 @@ export function LandingPage({ onLock, hasSession, onAnonymous }: LandingPageProp
               style={{ fontSize: "clamp(2.8rem, 13vw, 7.2rem)", fontWeight: 500, marginTop: "-0.02em" }}
             >
               <span className="shimmer-text-lumensky god-text-shadow">
-                Start executing.
+                Start building.
               </span>
             </div>
           </h1>
