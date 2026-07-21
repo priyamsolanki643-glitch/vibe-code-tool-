@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Vault, Square, Atom, Zap, Fingerprint, Lock, Shield } from "lucide-react";
+import { ArrowUp, Mic, Plus, Menu, Globe, Image, ThumbsUp, ThumbsDown, Share2, Copy, Target, Camera, Paperclip, X, ChevronRight, ChevronLeft, Cpu, Edit, RefreshCw, Check, Square, Atom, Zap, Fingerprint, Lock, Shield } from "lucide-react";
 import { GyroLogo } from "./gyro-logo";
 import { supabase } from "@/utils/supabase/client";
 import { MarkdownRenderer } from "./markdown-renderer";
 interface ChatViewProps {
   onOpenSidebar: () => void;
-  onOpenVault: () => void;
   isAnonymous?: boolean;
   onRequireAuth?: () => void;
 }
@@ -30,7 +29,7 @@ function hexToRgb(hex: string) {
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
 }
 
-export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAuth }: ChatViewProps) {
+export function ChatView({ onOpenSidebar, isAnonymous, onRequireAuth }: ChatViewProps) {
   const router = useRouter();
   const [simulationData, setSimulationData] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);

@@ -20,14 +20,13 @@ interface HistoryGroup {
 }
 
 interface SidebarProps {
-  onOpenVault: () => void;
   onSignOut: () => void;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   isAnonymous?: boolean;
 }
 
-export function Sidebar({ onOpenVault, onSignOut, isOpen, setIsOpen, isAnonymous }: SidebarProps) {
+export function Sidebar({ onSignOut, isOpen, setIsOpen, isAnonymous }: SidebarProps) {
   const router = useRouter();
   const [activeItem, setActiveItem] = useState("trajectory");
   const [touchStart, setTouchStart] = useState(0);
@@ -254,25 +253,6 @@ const { data: { session } } = await supabase.auth.getSession();
               <Search className="size-4" />
             </button>
           )}
-
-          {/* Vault */}
-          <button
-            onClick={() => {
-              setActiveItem("vault");
-              onOpenVault();
-            }}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-[13px] transition-colors ${
-              activeItem === "vault"
-                ? "bg-[#ffffff]/10 text-[#ffffff]"
-                : "text-[#a1a1aa] hover:bg-white/5 hover:text-[#ffffff]"
-            } ${!isOpen ? "justify-center" : ""}`}
-          >
-            <div className="flex items-center gap-3">
-              <Archive className="size-4 shrink-0" />
-              {isOpen && <span className="font-medium">Vault</span>}
-            </div>
-            {isOpen && <span className={`text-[10px] font-mono ${activeItem === "vault" ? "text-[#ffffff]/70" : "text-[#52525b]"}`}>2x tap</span>}
-          </button>
 
           {/* Chat History */}
           {!isAnonymous && (

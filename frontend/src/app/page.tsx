@@ -5,7 +5,6 @@ import { supabase } from "@/utils/supabase/client";
 import { LandingPage } from "@/components/landing-page";
 import { Sidebar } from "@/components/sidebar";
 import { ChatView } from "@/components/chat-view";
-import { VaultModal } from "@/components/vault-modal";
 import { SplashScreen } from "@/components/splash-screen";
 import { Archive } from "lucide-react";
 
@@ -14,7 +13,6 @@ export default function EntryPoint() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [hasActiveMission, setHasActiveMission] = useState(false);
-  const [isVaultOpen, setIsVaultOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -195,7 +193,6 @@ export default function EntryPoint() {
       <Sidebar 
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
-        onOpenVault={() => setIsVaultOpen(true)} 
         onSignOut={async () => {
           await supabase.auth.signOut();
           setIsLocked(false);
@@ -206,15 +203,12 @@ export default function EntryPoint() {
       
       <ChatView
         onOpenSidebar={() => setIsSidebarOpen(prev => !prev)}
-        onOpenVault={() => setIsVaultOpen(true)}
         isAnonymous={isAnonymous}
         onRequireAuth={() => {
           setIsLocked(false);
           setIsAnonymous(false);
         }}
       />
-      
-      {isVaultOpen && <VaultModal onClose={() => setIsVaultOpen(false)} />}
     </div>
   );
 }
