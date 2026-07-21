@@ -1,7 +1,7 @@
 @import "tailwindcss";
-@import "shadcn/tailwind.css";
 @plugin "@tailwindcss/typography";
 @plugin "tailwindcss-animate";
+@import "shadcn/tailwind.css";
 
 @theme inline {
   --color-background: var(--background);
