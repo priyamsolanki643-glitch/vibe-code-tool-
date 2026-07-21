@@ -73,10 +73,10 @@ export function ChatView({ onOpenSidebar, isAnonymous, onRequireAuth }: ChatView
   }, [isAnonymous]);
 
   const placeholders = [
-    "Help me achieve my goal...",
-    "Find opportunities in my area...",
-    "How to crack the exam...",
-    "How to earn money..."
+    "Describe your crazy idea in plain English...",
+    "I want to build an app that...",
+    "Make me a full-stack app before my coffee cools down...",
+    "Type what you're imagining, I'll code it out..."
   ];
 
   // Placeholder rotation
