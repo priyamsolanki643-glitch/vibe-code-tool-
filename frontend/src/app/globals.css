@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
-@import "tw-animate-css";
+@plugin "tailwindcss-animate";
 @import "shadcn/tailwind.css";
 
 @theme inline {
