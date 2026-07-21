@@ -243,7 +243,7 @@ export function OracleChat({ token: initialToken, studentContext = '', className
     } finally {
       setIsStreaming(false);
     }
-  }, [input, isStreaming, messages, token, studentContext, activeSoul, updateSoul]);
+  }, [input, isStreaming, messages, studentContext, activeSoul, updateSoul]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
