@@ -201,15 +201,15 @@ export function LandingPage({ onLock, hasSession, onAnonymous }: LandingPageProp
               style={{ fontSize: "clamp(2.8rem, 13vw, 7.2rem)", fontWeight: 500, marginTop: "-0.02em" }}
             >
               <span className="shimmer-text-lumensky god-text-shadow">
-                Start building.
+                Start executing.
               </span>
             </div>
           </h1>
 
           {/* Subtext */}
           <p className="text-[#a1a1aa] text-[15px] sm:text-[17px] leading-snug max-w-[90%] sm:max-w-md mx-auto mb-10 font-sans font-normal opacity-90 pointer-events-none">
-            The ultimate vibe-coding environment.<br />
-            <span className="text-white/70 font-medium">Code at the speed of thought.</span>
+            Built for achievers, not procrastinators.<br />
+            <span className="text-white/70 font-medium">No fluff. No excuses. No mercy.</span>
           </p>
 
           {/* Centered CTA Row */}
