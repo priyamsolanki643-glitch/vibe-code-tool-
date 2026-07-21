@@ -1,0 +1,14 @@
+name: Keep Cloud Run Alive
+on:
+  schedule:
+    - cron: "*/10 * * * *" # Runs every 10 minutes
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          curl -s https://fp-1083682147747.europe-west1.run.app/health
+          echo "Pinged backend at $(date) to prevent cold start."

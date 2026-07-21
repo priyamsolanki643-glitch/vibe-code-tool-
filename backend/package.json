@@ -1,0 +1,35 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "FP-OS Backend API",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --skipLibCheck",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/genai": "^2.7.0",
+    "@hono/node-server": "^2.0.4",
+    "@hono/zod-validator": "^0.8.0",
+    "@supabase/supabase-js": "^2.107.0",
+    "cohere-ai": "^8.0.0",
+    "dotenv": "^17.4.2",
+    "hono": "^4.12.23",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "uuid": "^14.0.0",
+    "ws": "^8.21.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1"
+  }
+}

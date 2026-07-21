@@ -1,0 +1,37 @@
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/fp-backend:$COMMIT_SHA'
+      - '.'
+
+  # Step 2: Push the image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/fp-backend:$COMMIT_SHA'
+
+  # Step 3: Deploy to Cloud Run (preserves existing env vars, only updates image)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'services'
+      - 'update'
+      - 'fp-backend'
+      - '--image=gcr.io/$PROJECT_ID/fp-backend:$COMMIT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--update-env-vars=SYSTEM_REALISM_MODE=BRUTAL_EXPLICIT,SUPABASE_URL=https://kscqvigvcfjdulonvdxa.supabase.co,SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzY3F2aWd2Y2ZqZHVsb252ZHhhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDY2MjAxMywiZXhwIjoyMDk2MjM4MDEzfQ.lNlB6nnfaeP9UADMPrMLBh0NzXr_EK6GYZB8TszR_KM'
+
+images:
+  - 'gcr.io/$PROJECT_ID/fp-backend:$COMMIT_SHA'
+
+substitutions:
+  _AI_PROVIDER_KEY: ''
+  _SUPABASE_URL: ''
+  _SUPABASE_SERVICE_KEY: ''

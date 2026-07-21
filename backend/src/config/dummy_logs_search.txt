@@ -1,0 +1,30 @@
+const fs = require('fs');
+const readline = require('readline');
+
+const logPath = 'C:\\Users\\Hp\\.gemini\\antigravity\\brain\\1dac6416-66ad-4172-8f81-305d215795ab\\.system_generated\\logs\\transcript.jsonl';
+
+async function run() {
+  const fileStream = fs.createReadStream(logPath);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+
+  for await (const line of rl) {
+    if (line.includes('europe-west1') || line.includes('run.app') || line.includes('cloudbuild.yaml') || line.includes('gcloud') || line.includes('deploy')) {
+      try {
+        const parsed = JSON.parse(line);
+        console.log(`[Step ${parsed.step_index}] Type: ${parsed.type}`);
+        if (parsed.content) {
+          console.log(parsed.content.substring(0, 400));
+        }
+        if (parsed.tool_calls) {
+          console.log(JSON.stringify(parsed.tool_calls, null, 2));
+        }
+        console.log('---');
+      } catch (e) {}
+    }
+  }
+}
+
+run().catch(console.error);
