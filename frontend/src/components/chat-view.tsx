@@ -43,7 +43,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [greeting, setGreeting] = useState({ text: "Hi bro", accent: "execution kiya ?", animateAccent: true });
+  const [greeting, setGreeting] = useState({ text: "Hi bro", accent: "What are we vibing on today?", animateAccent: true });
   const [isAttachMenuOpen, setIsAttachMenuOpen] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -58,7 +58,7 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
     let text = "Good Evening";
     if (hour < 12) text = "Good Morning";
     else if (hour < 17) text = "Good Afternoon";
-    setGreeting({ text, accent: "Ready to execute?", animateAccent: true });
+    setGreeting({ text, accent: "What are we vibing on today?", animateAccent: true });
   }, []);
 
   // Initialize anonymous id
