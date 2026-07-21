@@ -18,6 +18,7 @@ export function AuthModal({ onClose, onSuccess, initialMode = "signup" }: AuthMo
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [name, setName] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("Hinglish");
+  const [gender, setGender] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +35,7 @@ export function AuthModal({ onClose, onSuccess, initialMode = "signup" }: AuthMo
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || (mode === "signup" && !name.trim())) return;
+    if (!email || (mode === "signup" && (!name.trim() || !gender))) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -42,7 +43,7 @@ export function AuthModal({ onClose, onSuccess, initialMode = "signup" }: AuthMo
         email,
         options: { 
           shouldCreateUser: mode === "signup",
-          data: mode === "signup" ? { full_name: name.trim(), preferred_language: preferredLanguage } : undefined
+          data: mode === "signup" ? { full_name: name.trim(), preferred_language: preferredLanguage, gender } : undefined
         },
       });
       if (error) throw error;
@@ -186,6 +187,23 @@ export function AuthModal({ onClose, onSuccess, initialMode = "signup" }: AuthMo
                         <option value="German" className="bg-[#0f0f0f] text-white">German</option>
                       </select>
                     </div>
+
+                    <div className="relative flex items-center bg-white/[0.03] border border-white/[0.05] focus-within:bg-white/[0.06] focus-within:border-white/[0.15] focus-within:shadow-[0_0_20px_rgba(255,255,255,0.05)] rounded-2xl transition-all duration-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-5 text-[#71717a] absolute left-4">
+                        <path d="M12 22v-7l-2 2"/><path d="M12 15l2 2"/><path d="M12 15v-4"/><path d="M10 6a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><circle cx="12" cy="11" r="5"/>
+                      </svg>
+                      <select
+                        value={gender}
+                        onChange={(e) => setGender(e.target.value)}
+                        className={`w-full bg-transparent border-none outline-none text-[15px] pl-12 pr-4 py-4 appearance-none cursor-pointer ${gender ? 'text-white' : 'text-[#71717a]'}`}
+                        required
+                      >
+                        <option value="" disabled className="bg-[#0f0f0f] text-[#71717a]">Select Gender</option>
+                        <option value="Male" className="bg-[#0f0f0f] text-white">Male</option>
+                        <option value="Female" className="bg-[#0f0f0f] text-white">Female</option>
+                        <option value="Other" className="bg-[#0f0f0f] text-white">Other</option>
+                      </select>
+                    </div>
                   </>
                 )}
                 <div className="relative flex items-center bg-white/[0.03] border border-white/[0.05] focus-within:bg-white/[0.06] focus-within:border-white/[0.15] focus-within:shadow-[0_0_20px_rgba(255,255,255,0.05)] rounded-2xl transition-all duration-300">
@@ -225,7 +243,7 @@ export function AuthModal({ onClose, onSuccess, initialMode = "signup" }: AuthMo
                       value={digit}
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                      className="w-12 h-14 bg-white/[0.03] border border-white/[0.05] focus:bg-white/[0.08] focus:border-white/[0.2] focus:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-xl text-center text-xl font-mono text-white outline-none transition-all duration-300"
+                      className="w-10 h-12 sm:w-12 sm:h-14 bg-white/[0.03] border border-white/[0.05] focus:bg-white/[0.08] focus:border-white/[0.2] focus:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-xl text-center text-lg sm:text-xl font-mono text-white outline-none transition-all duration-300"
                       autoFocus={idx === 0}
                       required
                     />

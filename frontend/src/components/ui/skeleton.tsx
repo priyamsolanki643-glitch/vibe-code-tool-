@@ -6,11 +6,10 @@
 import React from "react";
 
 // ── Base Skeleton Pulse Block ──────────────────────────────────────────────────
-export function Skeleton({ className = "", ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       className={`animate-pulse rounded-md bg-white/[0.06] ${className}`}
-      {...props}
     />
   );
 }

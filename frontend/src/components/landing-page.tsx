@@ -189,7 +189,7 @@ export function LandingPage({ onLock, hasSession, onAnonymous }: LandingPageProp
           <h1 className="font-display mb-8 flex flex-col items-center pointer-events-none">
             {/* First Line */}
             <div 
-              className="tracking-tight pb-1 text-[#a1a1aa] leading-[1.0] whitespace-nowrap"
+              className="tracking-tight pb-1 text-[#a1a1aa] leading-[1.0]"
               style={{ fontSize: "clamp(2.0rem, 10vw, 5.0rem)", fontWeight: 400 }}
             >
               Stop planning.
