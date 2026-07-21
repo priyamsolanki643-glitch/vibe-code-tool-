@@ -1151,7 +1151,7 @@ export function ChatView({ onOpenSidebar, isAnonymous, onRequireAuth }: ChatView
           {/* Subtext info */}
           <div className="mt-3 text-center">
             <span className="font-sans text-[11px] text-[#52525b]">
-              Lumensky helps you execute faster, but always double-check the details.
+              Lumensky generates code in real-time. Always review before shipping.
             </span>
           </div>
 
