@@ -699,16 +699,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
         {/* Header Actions */}
         <div className="flex items-center gap-1 md:gap-2 -mr-1 pointer-events-auto">
           <button 
-            onClick={onOpenVault}
-            className="p-2 text-[#ffffff]/60 hover:text-[#ffffff] active:scale-90 transition-all cursor-pointer flex items-center gap-2 group"
-          >
-            <div className="relative flex items-center justify-center">
-              <Fingerprint className="size-5 transition-transform duration-300 group-hover:scale-110" />
-              <div className="absolute inset-0 bg-white/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-            <span className="hidden md:inline text-sm font-medium tracking-wide">Vault</span>
-          </button>
-          <button 
             onClick={() => window.dispatchEvent(new Event('new-thread'))}
             className="p-2 text-[#ffffff] hover:text-[#f4f4f5] active:scale-90 transition-all cursor-pointer drop-shadow-[0_0_12px_rgba(255, 255, 255,0.6)]"
           >
