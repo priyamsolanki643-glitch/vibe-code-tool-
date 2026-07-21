@@ -93,26 +93,6 @@ export default function EntryPoint() {
     }
   };
 
-  useEffect(() => {
-    if (!isLocked) return;
-
-    const handlePointerDown = (e: PointerEvent) => {
-      const target = e.target as HTMLElement;
-      if (isVaultOpen || target.closest("input, textarea, button, a")) return;
-
-      const now = Date.now();
-      if (now - doubleTapRef.current < 320) {
-        setIsVaultOpen(true);
-        doubleTapRef.current = 0;
-      } else {
-        doubleTapRef.current = now;
-      }
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, [isLocked, isVaultOpen]);
-
   // Touch gesture control for Sidebar (Swipe Right to open, Swipe Left to close)
   useEffect(() => {
     if (!isLocked) return;
@@ -123,7 +103,6 @@ export default function EntryPoint() {
     const handleTouchStart = (e: TouchEvent) => {
       const target = e.target as HTMLElement;
       if (
-        isVaultOpen || 
         target.closest("input, textarea, button, a, [role='slider'], pre, code, .overflow-x-auto")
       ) {
         return;
@@ -163,7 +142,7 @@ export default function EntryPoint() {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [isLocked, isVaultOpen]);
+  }, [isLocked]);
 
   if (showSplash) {
     return <SplashScreen onComplete={() => {
