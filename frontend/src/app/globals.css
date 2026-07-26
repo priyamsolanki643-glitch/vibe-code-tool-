@@ -818,37 +818,4 @@
 }
 .animate-cosmic-pulse {
   animation: cosmicPulse 8s ease-in-out infinite alternate;
-}
-
-/* ─────────────────────────────────────────────
-   EXACT CHROME PROFILE AMBIENT TINT (ULTRA-SUBTLE)
-───────────────────────────────────────────── */
-.chrome-ambient-aura {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-}
-
-/* Top-Right Soft Purple Tint (Exact Chrome Right Corner) */
-.chrome-aura-purple {
-  position: absolute;
-  top: -5%;
-  right: -5%;
-  width: 40vw;
-  height: 40vh;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(236, 72, 153, 0.05) 40%, transparent 75%);
-  filter: blur(90px);
-}
-
-/* Bottom-Left Soft Emerald Tint (Exact Chrome Left Corner) */
-.chrome-aura-green {
-  position: absolute;
-  bottom: -5%;
-  left: -5%;
-  width: 40vw;
-  height: 40vh;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 40%, transparent 75%);
-  filter: blur(90px);
 }

@@ -561,15 +561,6 @@ export function ChatView({ onOpenSidebar, onOpenVault, isAnonymous, onRequireAut
   return (
     <div className="flex-1 flex flex-col min-w-0 relative h-screen bg-[#000000] text-white font-sans overflow-hidden" style={{ height: '100dvh' }}>
       
-      {/* ── Chrome Ambient Aura (Only on Home Screen) ── */}
-      {isInitial && (
-        <div className="chrome-ambient-aura">
-          <div className="chrome-aura-green" />
-          <div className="chrome-aura-purple" />
-          <div className="chrome-aura-blue" />
-        </div>
-      )}
-
       <svg width="0" height="0" className="absolute pointer-events-none">
         <filter id="liquid-spill">
           <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
